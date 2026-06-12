@@ -411,6 +411,7 @@ function updateBullets(dt, ts) {
     if (d2 < hitR * hitR) {
       ebullets.splice(i, 1);
       hitPlayer();
+      break; // hitPlayer() may clear ebullets; further iterations would access undefined
     } else if (!b.grazed && d2 < 34 * 34 && player.inv <= 0 && odActive <= 0) {
       // GRAZE: tæt forbiflyvning belønnes
       b.grazed = true;
@@ -649,6 +650,7 @@ function dropPowerup(x, y) {
 }
 
 function updatePowerups(dt) {
+  if (!player) return;
   const p = player;
   for (let i = powerups.length - 1; i >= 0; i--) {
     const u = powerups[i];
@@ -800,6 +802,7 @@ function togglePause() {
 }
 
 function gameOver() {
+  if (state === 'GAMEOVER') return;
   state = 'GAMEOVER';
   Sfx.stopMusic(); Sfx.over();
   ui.hud.classList.add('hidden');
@@ -853,6 +856,7 @@ function updateOdUi() {
 }
 
 function updatePwUi() {
+  if (!player) return;
   const p = player;
   const lines = [];
   if (p.weaponT > 0) lines.push((p.weapon === 'laser' ? 'LASER ' : 'TRIPLE ') + Math.ceil(p.weaponT) + 's');
