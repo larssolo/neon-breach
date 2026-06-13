@@ -10,6 +10,7 @@ const ctx = cvs.getContext('2d');
 const VW = cvs.width;   // 800
 const VH = cvs.height;  // 1000
 const S  = Math.sqrt(VH / 1000); // visual scale relative to original 800×1000
+const G  = 1.45;                  // extra graphics boost for ship/enemies/powerups
 
 const $ = (id) => document.getElementById(id);
 const ui = {
@@ -277,7 +278,7 @@ function tryOverdrive() {
 /* ---------------- Player ---------------- */
 function makePlayer() {
   return {
-    x: VW / 2, y: VH - 130, r: 14 * S, speed: 360 * S,
+    x: VW / 2, y: VH - 130, r: 14 * S * G, speed: 360 * S,
     lives: 3, inv: 0, fireCd: 0,
     weapon: 'single', weaponT: 0, shieldT: 0, slowT: 0,
   };
@@ -431,13 +432,13 @@ function updateBullets(dt, ts) {
 
 /* ---------------- Enemies ---------------- */
 const E_DEFS = {
-  drone:    { hp: 1,  r: 16 * S, score: 100, color: '#ff2bd6' },
-  diver:    { hp: 1,  r: 14 * S, score: 150, color: '#ffb000' },
-  tank:     { hp: 7,  r: 24 * S, score: 300, color: '#39ff6a' },
-  splitter: { hp: 2,  r: 18 * S, score: 200, color: '#ffe14d' },
-  mini:     { hp: 1,  r: 9 * S,  score: 80,  color: '#ffe14d' },
-  sniper:   { hp: 2,  r: 15 * S, score: 250, color: '#ff4d4d' },
-  boss:     { hp: 60, r: 56 * S, score: 5000, color: '#ff2bd6' },
+  drone:    { hp: 1,  r: 16 * S * G, score: 100, color: '#ff2bd6' },
+  diver:    { hp: 1,  r: 14 * S * G, score: 150, color: '#ffb000' },
+  tank:     { hp: 7,  r: 24 * S * G, score: 300, color: '#39ff6a' },
+  splitter: { hp: 2,  r: 18 * S * G, score: 200, color: '#ffe14d' },
+  mini:     { hp: 1,  r: 9 * S * G,  score: 80,  color: '#ffe14d' },
+  sniper:   { hp: 2,  r: 15 * S * G, score: 250, color: '#ff4d4d' },
+  boss:     { hp: 60, r: 56 * S * G, score: 5000, color: '#ff2bd6' },
 };
 
 function spawnEnemy(type, x = rand(60, VW - 60), y = -40) {
@@ -647,7 +648,7 @@ const P_TYPES = [
 
 function dropPowerup(x, y) {
   const t = P_TYPES[Math.floor(Math.random() * P_TYPES.length)];
-  powerups.push({ x, y, vy: 110 * S, r: 15 * S, t: 0, def: t });
+  powerups.push({ x, y, vy: 110 * S, r: 15 * S * G, t: 0, def: t });
 }
 
 function updatePowerups(dt) {
@@ -1025,22 +1026,22 @@ function drawShip(p) {
   ctx.shadowColor = '#00f6ff'; ctx.shadowBlur = 16;
   ctx.fillStyle = '#00f6ff';
   ctx.beginPath();
-  ctx.moveTo(0, -18*S); ctx.lineTo(13*S, 12*S); ctx.lineTo(5*S, 7*S);
-  ctx.lineTo(0, 13*S); ctx.lineTo(-5*S, 7*S); ctx.lineTo(-13*S, 12*S);
+  ctx.moveTo(0, -18*S*G); ctx.lineTo(13*S*G, 12*S*G); ctx.lineTo(5*S*G, 7*S*G);
+  ctx.lineTo(0, 13*S*G); ctx.lineTo(-5*S*G, 7*S*G); ctx.lineTo(-13*S*G, 12*S*G);
   ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.fillRect(-2*S, -8*S, 4*S, 8*S);
+  ctx.fillRect(-2*S*G, -8*S*G, 4*S*G, 8*S*G);
   if (p.shieldT > 0) {
     ctx.shadowBlur = 12; ctx.shadowColor = '#39ff6a';
     ctx.strokeStyle = 'rgba(57,255,106,' + (p.shieldT < 2 ? 0.3 + 0.4 * Math.abs(Math.sin(p.shieldT * 8)) : 0.7) + ')';
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, 26 * S, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 26 * S * G, 0, TAU); ctx.stroke();
   }
   if (odActive > 0) {
     ctx.shadowBlur = 18; ctx.shadowColor = '#ff2bd6';
     ctx.strokeStyle = 'rgba(255,43,214,0.8)';
     ctx.lineWidth = 2.5;
-    const rr = (30 + Math.sin(gameTime * 14) * 4) * S;
+    const rr = (30 + Math.sin(gameTime * 14) * 4) * S * G;
     ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.stroke();
   }
   ctx.restore();
