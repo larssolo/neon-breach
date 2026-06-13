@@ -21,8 +21,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (!process.env.NEON_DATABASE_URL) {
-    console.error('NEON_DATABASE_URL mangler');
-    return res.status(500).json({ error: 'Server ikke konfigureret' });
+    console.error('NEON_DATABASE_URL missing');
+    return res.status(500).json({ error: 'Server not configured' });
   }
 
   const sql = neon(process.env.NEON_DATABASE_URL);
@@ -59,13 +59,14 @@ module.exports = async function handler(req, res) {
       const body = req.body || {};
       const name = String(body.name || '')
         .toUpperCase()
-        .replace(/[^A-ZÆØÅ0-9]/g, '')
-        .slice(0, 3);
+        .replace(/[^A-Z0-9 ]/g, '')
+        .trim()
+        .slice(0, 10);
       const score = Math.floor(Number(body.score));
       const wave  = Math.max(1, Math.floor(Number(body.wave)));
 
       if (!name || score <= 0 || score >= 10_000_000 || wave > 1000) {
-        return res.status(400).json({ error: 'Ugyldig data' });
+        return res.status(400).json({ error: 'Invalid data' });
       }
 
       await sql`
@@ -77,6 +78,6 @@ module.exports = async function handler(req, res) {
     res.status(405).end();
   } catch (err) {
     console.error('scores handler:', err.message);
-    res.status(500).json({ error: 'Serverfejl' });
+    res.status(500).json({ error: 'Server error' });
   }
 };
