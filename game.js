@@ -937,8 +937,8 @@ async function fetchRank(sc) {
 }
 
 ui.btnSubmit.addEventListener('click', async () => {
-  const name = ui.initials.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
-  if (!name) { ui.entryStatus.textContent = 'Enter 1-3 characters'; return; }
+  const name = ui.initials.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 10);
+  if (!name) { ui.entryStatus.textContent = 'Enter your name'; return; }
   ui.btnSubmit.disabled = true;
   ui.entryStatus.textContent = 'Saving…';
   store.set('nb_initials', name);
@@ -961,7 +961,7 @@ ui.btnSubmit.addEventListener('click', async () => {
 });
 
 ui.initials.addEventListener('input', () => {
-  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
+  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 10);
 });
 ui.initials.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') ui.btnSubmit.click();
