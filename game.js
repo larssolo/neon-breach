@@ -107,7 +107,7 @@ const Sfx = {
   toggleMute() {
     this.muted = !this.muted;
     store.set('nb_muted', this.muted ? '1' : '0');
-    popup(VW / 2, VH / 2, this.muted ? 'LYD FRA' : 'LYD TIL', '#8f8ab8');
+    popup(VW / 2, VH / 2, this.muted ? 'SOUND OFF' : 'SOUND ON', '#8f8ab8');
   },
 };
 
@@ -142,7 +142,7 @@ async function enableTilt() {
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
       const r = await DeviceOrientationEvent.requestPermission(); // iOS-prompt
-      if (r !== 'granted') throw new Error('Tilladelse afvist');
+      if (r !== 'granted') throw new Error('Permission denied');
     }
     if (!tilt.enabled) addEventListener('deviceorientation', onOrient);
     tilt.enabled = true;
@@ -370,7 +370,7 @@ function hitPlayer() {
     p.inv = 1.2;
     Sfx.hit(); addShake(8);
     boom(p.x, p.y, '#00f6ff', 14);
-    popup(p.x, p.y - 30, 'SKJOLD!', '#00f6ff');
+    popup(p.x, p.y - 30, 'SHIELD!', '#00f6ff');
     return;
   }
   p.lives--;
@@ -639,8 +639,8 @@ function killEnemy(e, silentScore = false) {
 const P_TYPES = [
   { id: 'T', name: 'TRIPLE',  color: '#00f6ff' },
   { id: 'L', name: 'LASER',   color: '#ff2bd6' },
-  { id: 'S', name: 'SKJOLD',  color: '#39ff6a' },
-  { id: 'B', name: 'BOMBE',   color: '#ffb000' },
+  { id: 'S', name: 'SHIELD',  color: '#39ff6a' },
+  { id: 'B', name: 'BOMB',    color: '#ffb000' },
   { id: 'Z', name: 'SLOW-MO', color: '#ffe14d' },
 ];
 
@@ -793,7 +793,7 @@ function startGame() {
   }
   if (ctrlMode === 'tilt' && tilt.enabled) {
     calibrateTilt();
-    banner('TILT FOR AT FLYVE');
+    banner('TILT TO FLY');
   }
   updateHud();
 }
@@ -810,10 +810,10 @@ function gameOver() {
   ui.hud.classList.add('hidden');
   ui.btnOdMob.classList.add('hidden');
   ui.btnPauseMob.classList.add('hidden');
-  ui.finalScore.textContent = score.toLocaleString('da-DK');
+  ui.finalScore.textContent = score.toLocaleString('en-US');
   ui.finalWave.textContent = wave;
   const bestMult = Math.min(1 + Math.floor(maxCombo / 5), 8);
-  ui.finalStats.textContent = `BEDSTE COMBO x${bestMult} · ${grazes} GRAZES`;
+  ui.finalStats.textContent = `BEST COMBO x${bestMult} · ${grazes} GRAZES`;
   ui.entry.classList.toggle('hidden', score === 0);
   ui.initials.classList.remove('hidden');
   ui.btnSubmit.classList.remove('hidden');
@@ -826,8 +826,8 @@ function gameOver() {
 
 /* ---------------- HUD ---------------- */
 function updateHud() {
-  ui.score.textContent = score.toLocaleString('da-DK');
-  ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
+  ui.score.textContent = score.toLocaleString('en-US');
+  ui.hiscore.textContent = hiscore.toLocaleString('en-US');
   ui.wave.textContent = Math.max(1, wave);
   ui.lives.textContent = '▲'.repeat(Math.max(0, player ? player.lives : 0));
 }
@@ -862,7 +862,7 @@ function updatePwUi() {
   const p = player;
   const lines = [];
   if (p.weaponT > 0) lines.push((p.weapon === 'laser' ? 'LASER ' : 'TRIPLE ') + Math.ceil(p.weaponT) + 's');
-  if (p.shieldT > 0) lines.push('SKJOLD ' + Math.ceil(p.shieldT) + 's');
+  if (p.shieldT > 0) lines.push('SHIELD ' + Math.ceil(p.shieldT) + 's');
   if (p.slowT > 0) lines.push('SLOW-MO ' + Math.ceil(p.slowT) + 's');
   const html = lines.map((l) => '<span>' + l + '</span>').join('');
   if (ui.pwStatus.innerHTML !== html) ui.pwStatus.innerHTML = html;
@@ -900,11 +900,11 @@ async function submitScore(name, sc, wv) {
 }
 
 async function renderBoard(ol) {
-  ol.innerHTML = '<li class="dim">Henter scores…</li>';
+  ol.innerHTML = '<li class="dim">Loading scores…</li>';
   try {
     const rows = await fetchScores();
     if (!rows.length) {
-      ol.innerHTML = '<li class="dim">Ingen scores endnu — vær den første!</li>';
+      ol.innerHTML = '<li class="dim">No scores yet — be the first!</li>';
       return;
     }
     ol.innerHTML = '';
@@ -914,13 +914,13 @@ async function renderBoard(ol) {
       nm.className = 'nm';
       nm.textContent = String(r.name || '???').toUpperCase().slice(0, 3);
       const sc = document.createElement('span');
-      sc.textContent = Number(r.score).toLocaleString('da-DK');
+      sc.textContent = Number(r.score).toLocaleString('en-US');
       li.append(nm, sc);
       ol.appendChild(li);
     }
   } catch (err) {
     console.error('Leaderboard:', err);
-    ol.innerHTML = '<li class="dim">Kunne ikke hente leaderboard</li>';
+    ol.innerHTML = '<li class="dim">Could not load leaderboard</li>';
   }
 }
 
@@ -937,10 +937,10 @@ async function fetchRank(sc) {
 }
 
 ui.btnSubmit.addEventListener('click', async () => {
-  const name = ui.initials.value.toUpperCase().replace(/[^A-ZÆØÅ0-9]/g, '').slice(0, 3);
-  if (!name) { ui.entryStatus.textContent = 'Skriv 1-3 tegn'; return; }
+  const name = ui.initials.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
+  if (!name) { ui.entryStatus.textContent = 'Enter 1-3 characters'; return; }
   ui.btnSubmit.disabled = true;
-  ui.entryStatus.textContent = 'Gemmer…';
+  ui.entryStatus.textContent = 'Saving…';
   store.set('nb_initials', name);
   const submittedScore = score;
   const submittedWave = wave;
@@ -951,17 +951,17 @@ ui.btnSubmit.addEventListener('click', async () => {
     ui.initials.classList.add('hidden');
     ui.btnSubmit.classList.add('hidden');
     const rank = await fetchRank(submittedScore).catch(() => null);
-    ui.entryStatus.textContent = rank ? `GEMT — DU ER #${rank} PÅ LISTEN!` : 'Gemt!';
+    ui.entryStatus.textContent = rank ? `SAVED — YOU ARE #${rank} ON THE LIST!` : 'Saved!';
     renderBoard(ui.overBoard);
   } catch (err) {
     console.error(err);
-    ui.entryStatus.textContent = 'Fejl — prøv igen';
+    ui.entryStatus.textContent = 'Error — try again';
     ui.btnSubmit.disabled = false;
   }
 });
 
 ui.initials.addEventListener('input', () => {
-  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-ZÆØÅ0-9]/g, '').slice(0, 3);
+  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3);
 });
 ui.initials.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') ui.btnSubmit.click();
@@ -1297,8 +1297,8 @@ function frame(now) {
       updateComboUi();
       updateOdUi();
       updatePwUi();
-      ui.score.textContent = score.toLocaleString('da-DK');
-      ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
+      ui.score.textContent = score.toLocaleString('en-US');
+      ui.hiscore.textContent = hiscore.toLocaleString('en-US');
 
       bannerT = Math.max(0, bannerT - dt);
     }
@@ -1321,7 +1321,7 @@ function frame(now) {
     drawScene(dt);
   } catch (err) {
     // Spring den dårlige frame over, men hold loopet i live.
-    console.error('NEON BREACH: frame-fejl (springer over, fortsætter):', err);
+    console.error('NEON BREACH: frame error (skipping, continuing):', err);
   } finally {
     rafId = requestAnimationFrame(frame);
   }
@@ -1338,7 +1338,7 @@ ui.btnTilt.addEventListener('click', async (e) => {
   ui.ctrlStatus.textContent = '';
   const ok = await enableTilt();   // skal ske i user-gesture pga. iOS-permission
   if (ok) startGame();
-  else ui.ctrlStatus.textContent = 'Tilt ikke tilgængelig — bruger træk-styring';
+  else ui.ctrlStatus.textContent = 'Tilt not available — using drag controls';
 });
 ui.btnDrag.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -1356,6 +1356,6 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden && state === 'PLAYING' && IS_TOUCH) reqWakeLock();   // wake lock slippes ved tab-skift
 });
 
-ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
+ui.hiscore.textContent = hiscore.toLocaleString('en-US');
 renderBoard(ui.menuBoard);
 rafId = requestAnimationFrame(frame);
