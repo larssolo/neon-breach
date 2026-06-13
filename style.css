@@ -215,6 +215,8 @@ canvas#game {
 .btn-pink:hover, .btn-pink:focus-visible { background: var(--pink); color: #06010f; }
 
 .credit { font-size: 8px; color: #564f8a; letter-spacing: 3px; }
+.credit a { color: #564f8a; text-decoration: none; }
+.credit a:hover { color: var(--cyan); }
 
 /* ---------- Mobil ---------- */
 .ctrl-pick { display: flex; flex-direction: column; align-items: center; gap: 16px; }
