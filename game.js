@@ -93,24 +93,61 @@ const Sfx = {
   waveIn()  { this.tone(330, 0.12, 'square', 0.1); setTimeout(() => this.tone(440, 0.18, 'square', 0.1), 130); },
   bossIn()  { [98, 98, 130].forEach((f, i) => setTimeout(() => this.tone(f, 0.3, 'sawtooth', 0.2), i * 320)); },
   over()    { [392, 311, 262, 196].forEach((f, i) => setTimeout(() => this.tone(f, 0.35, 'triangle', 0.16), i * 260)); },
-  // Minimalistisk synthwave-bas, kører kun under spil
-  startMusic() {
-    if (!this.ctx || this.musicTimer) return;
-    const bass = [55, 0, 55, 55, 0, 65.4, 0, 49];   // A1 / C2 / G1
-    this.musicTimer = setInterval(() => {
-      if (this.muted || state !== 'PLAYING' || paused) return;
-      const n = bass[this.step % bass.length];
-      if (n) this.tone(n, 0.18, 'sawtooth', 0.10);
-      if (this.step % 2 === 0) this.noise(0.03, 0.04, 7000); // hihat
-      this.step++;
-    }, 200);
-  },
-  stopMusic() { clearInterval(this.musicTimer); this.musicTimer = null; this.step = 0; },
+  startMusic() { Music.playGame(); },
+  stopMusic()  { Music.stopGame(); },
   toggleMute() {
     this.muted = !this.muted;
     store.set('nb_muted', this.muted ? '1' : '0');
+    Music.applyMute();
     popup(VW / 2, VH / 2, this.muted ? 'SOUND OFF' : 'SOUND ON', '#8f8ab8');
   },
+};
+
+/* ---------------- Music tracks (HTMLAudio) ---------------- */
+const Music = {
+  start: document.getElementById('audio-start'),
+  game:  document.getElementById('audio-game'),
+  startVol: 0.6,
+  gameVol:  0.5,
+  init() {
+    [this.start, this.game].forEach(a => {
+      if (!a) return;
+      a.volume = 0;
+      a.addEventListener('error', () => { a._broken = true; });
+    });
+    this.applyMute();
+  },
+  applyMute() {
+    if (this.start) this.start.muted = Sfx.muted;
+    if (this.game)  this.game.muted  = Sfx.muted;
+  },
+  fade(el, target, ms = 400) {
+    if (!el || el._broken) return;
+    const start = el.volume, t0 = performance.now();
+    const step = () => {
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      el.volume = start + (target - start) * k;
+      if (k < 1) requestAnimationFrame(step);
+      else if (target === 0) el.pause();
+    };
+    if (target > 0 && el.paused) {
+      const p = el.play();
+      if (p && p.catch) p.catch(() => {});
+    }
+    requestAnimationFrame(step);
+  },
+  playStart() {
+    if (!this.start) return;
+    this.fade(this.game, 0, 300);
+    this.fade(this.start, this.startVol, 600);
+  },
+  stopStart() { this.fade(this.start, 0, 300); },
+  playGame() {
+    if (!this.game) return;
+    this.fade(this.start, 0, 300);
+    this.fade(this.game, this.gameVol, 600);
+  },
+  stopGame() { this.fade(this.game, 0, 300); },
 };
 
 /* ---------------- Input ---------------- */
@@ -809,6 +846,7 @@ function gameOver() {
   if (state === 'GAMEOVER') return;
   state = 'GAMEOVER';
   Sfx.stopMusic(); Sfx.over();
+  Music.playStart();
   ui.hud.classList.add('hidden');
   ui.btnOdMob.classList.add('hidden');
   ui.btnPauseMob.classList.add('hidden');
@@ -1364,4 +1402,15 @@ document.addEventListener('visibilitychange', () => {
 
 ui.hiscore.textContent = hiscore.toLocaleString('en-US');
 renderBoard(ui.menuBoard);
+Music.init();
+// Try autoplay (will silently fail on mobile until first user interaction)
+Music.playStart();
+// On first interaction, ensure start.mp4 begins playing if autoplay was blocked
+const kickStartMusic = () => {
+  if (state === 'MENU' || state === 'GAMEOVER') Music.playStart();
+  window.removeEventListener('pointerdown', kickStartMusic);
+  window.removeEventListener('keydown', kickStartMusic);
+};
+window.addEventListener('pointerdown', kickStartMusic, { once: true });
+window.addEventListener('keydown', kickStartMusic, { once: true });
 rafId = requestAnimationFrame(frame);
