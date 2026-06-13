@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="da">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>NEON BREACH — 80s Arcade Shooter</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><polygon points='8,1 14,14 8,11 2,14' fill='%2300f6ff'/></svg>">
-<meta name="description" content="Synthwave arcade shooter. Overlev bølgerne, byg din combo, jagt highscoren.">
+<meta name="description" content="Synthwave arcade shooter. Survive the waves, build your combo, chase the high score.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
@@ -48,32 +48,32 @@
       <h1 class="title"><span>NEON</span><span class="title-pink">BREACH</span></h1>
       <div class="subtitle">A SYNTHWAVE INVASION</div>
     </div>
-    <div class="blink" id="press-start">TRYK SPACE / KLIK FOR AT STARTE</div>
+    <div class="blink" id="press-start">PRESS SPACE / CLICK TO START</div>
     <div id="ctrl-pick" class="ctrl-pick hidden">
-      <div class="entry-label">VÆLG STYRING</div>
-      <button id="btn-tilt" class="btn">📱 TILT-STYRING</button>
-      <button id="btn-drag" class="btn btn-pink">👆 TRÆK-STYRING</button>
+      <div class="entry-label">CHOOSE CONTROLS</div>
+      <button id="btn-tilt" class="btn">📱 TILT CONTROLS</button>
+      <button id="btn-drag" class="btn btn-pink">👆 DRAG CONTROLS</button>
       <div id="ctrl-status" class="dim"></div>
     </div>
     <div class="controls">
-      <div><b>WASD / PILE</b> — flyv</div>
-      <div><b>SPACE</b> — skyd (hold)</div>
-      <div><b>SHIFT</b> — OVERDRIVE (når meteren er fuld)</div>
-      <div><b>P</b> — pause &nbsp; <b>M</b> — lyd til/fra</div>
-      <div class="tip">MOBIL: tilt for at flyve · hold fingeren for at skyde</div>
-      <div class="tip">TIP: Flyv TÆT forbi fjendeskud (graze) for bonus + overdrive</div>
+      <div><b>WASD / ARROWS</b> — fly</div>
+      <div><b>SPACE</b> — shoot (hold)</div>
+      <div><b>SHIFT</b> — OVERDRIVE (when meter is full)</div>
+      <div><b>P</b> — pause &nbsp; <b>M</b> — sound on/off</div>
+      <div class="tip">MOBILE: tilt to fly · hold finger to shoot</div>
+      <div class="tip">TIP: Fly CLOSE past enemy bullets (graze) for bonus + overdrive</div>
     </div>
     <div class="board">
       <div class="board-title">— HALL OF FAME —</div>
-      <ol id="menu-board" class="board-list"><li class="dim">Henter scores…</li></ol>
+      <ol id="menu-board" class="board-list"><li class="dim">Loading scores…</li></ol>
     </div>
-    <div class="credit">© 2026 · INSERT COIN</div>
+    <div class="credit">© 2026 <a href="https://www.larssohl.dk" target="_blank" rel="noopener">larssohl.dk</a> · Built with Claude Code 2026 · v1.0.0</div>
   </div>
 
   <!-- PAUSE -->
   <div id="pause" class="overlay hidden">
     <div class="big-label">PAUSE</div>
-    <div class="blink">TRYK P FOR AT FORTSÆTTE</div>
+    <div class="blink">PRESS P TO CONTINUE</div>
   </div>
 
   <!-- GAME OVER -->
@@ -85,16 +85,16 @@
     </div>
     <div id="final-stats" class="final-stats"></div>
     <div id="entry">
-      <div class="entry-label">INDTAST DINE INITIALER</div>
+      <div class="entry-label">ENTER YOUR INITIALS</div>
       <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
-      <button id="btn-submit" class="btn">GEM SCORE</button>
+      <button id="btn-submit" class="btn">SAVE SCORE</button>
       <div id="entry-status" class="dim"></div>
     </div>
     <div class="board">
       <div class="board-title">— HALL OF FAME —</div>
       <ol id="over-board" class="board-list"></ol>
     </div>
-    <button id="btn-restart" class="btn btn-pink">SPIL IGEN</button>
+    <button id="btn-restart" class="btn btn-pink">PLAY AGAIN</button>
   </div>
 
   <button id="btn-od-mob" class="mob-btn mob-od hidden">OD!</button>
