@@ -20,12 +20,13 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (!process.env.NEON_DATABASE_URL) {
-    console.error('NEON_DATABASE_URL missing');
+  const dbUrl = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
+  if (!dbUrl) {
+    console.error('DATABASE_URL missing');
     return res.status(500).json({ error: 'Server not configured' });
   }
 
-  const sql = neon(process.env.NEON_DATABASE_URL);
+  const sql = neon(dbUrl);
 
   try {
     /* -------- GET /api/scores -------- */
