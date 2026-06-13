@@ -767,6 +767,8 @@ function banner(text) { bannerText = text; bannerT = 2; }
 function startGame() {
   Sfx.init(); Sfx.resume(); Sfx.startMusic();
   state = 'PLAYING';
+  // Restart animation loop if it was killed by an uncaught exception
+  if (!rafId) rafId = requestAnimationFrame(frame);
   paused = false;
   score = 0; wave = 0; shake = 0; hitStop = 0; gameTime = 0;
   overdrive = 0; odActive = 0;
@@ -940,12 +942,15 @@ ui.btnSubmit.addEventListener('click', async () => {
   ui.btnSubmit.disabled = true;
   ui.entryStatus.textContent = 'Gemmer…';
   store.set('nb_initials', name);
+  const submittedScore = score;
+  const submittedWave = wave;
   try {
-    await submitScore(name, score, wave);
+    await submitScore(name, submittedScore, submittedWave);
     scoreSubmitted = true;
+    ui.initials.blur();
     ui.initials.classList.add('hidden');
     ui.btnSubmit.classList.add('hidden');
-    const rank = await fetchRank(score).catch(() => null);
+    const rank = await fetchRank(submittedScore).catch(() => null);
     ui.entryStatus.textContent = rank ? `GEMT — DU ER #${rank} PÅ LISTEN!` : 'Gemt!';
     renderBoard(ui.overBoard);
   } catch (err) {
@@ -1260,7 +1265,9 @@ function drawScene(dt) {
 
 /* ---------------- Main loop ---------------- */
 let lastT = performance.now();
+let rafId = 0;
 function frame(now) {
+  rafId = 0; // cleared while this frame executes; set again at end
   const dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
 
@@ -1268,7 +1275,7 @@ function frame(now) {
   if (hitStop > 0 && state === 'PLAYING' && !paused) {
     hitStop -= dt;
     drawScene(0);
-    requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frame);
     return;
   }
 
@@ -1309,7 +1316,7 @@ function frame(now) {
   }
 
   drawScene(dt);
-  requestAnimationFrame(frame);
+  rafId = requestAnimationFrame(frame);
 }
 
 /* ---------------- Init ---------------- */
@@ -1343,4 +1350,4 @@ document.addEventListener('visibilitychange', () => {
 
 ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
 renderBoard(ui.menuBoard);
-requestAnimationFrame(frame);
+rafId = requestAnimationFrame(frame);
