@@ -122,6 +122,7 @@ canvas#game {
   text-align: center;
   padding: 24px;
   overflow-y: auto;
+  touch-action: pan-y;
 }
 .hidden { display: none !important; }
 
