@@ -30,8 +30,8 @@ html, body {
 }
 
 canvas#game {
-  height: min(100dvh, 125dvw);
-  aspect-ratio: 4 / 5;
+  height: min(100dvh, calc(100dvw * 16 / 9));
+  aspect-ratio: 9 / 16;
   max-width: 100dvw;
   background: #06010f;
   display: block;
@@ -61,8 +61,8 @@ canvas#game {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  height: min(100dvh, 125dvw);
-  aspect-ratio: 4 / 5;
+  height: min(100dvh, calc(100dvw * 16 / 9));
+  aspect-ratio: 9 / 16;
   max-width: 100dvw;
   display: flex;
   justify-content: space-between;
@@ -109,8 +109,8 @@ canvas#game {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  height: min(100dvh, 125dvw);
-  aspect-ratio: 4 / 5;
+  height: min(100dvh, calc(100dvw * 16 / 9));
+  aspect-ratio: 9 / 16;
   max-width: 100dvw;
   display: flex;
   flex-direction: column;
