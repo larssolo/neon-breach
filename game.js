@@ -912,7 +912,7 @@ async function renderBoard(ol) {
       const li = document.createElement('li');
       const nm = document.createElement('span');
       nm.className = 'nm';
-      nm.textContent = String(r.name || '???').toUpperCase().slice(0, 3);
+      nm.textContent = String(r.name || '???').toUpperCase().slice(0, 10);
       const sc = document.createElement('span');
       sc.textContent = Number(r.score).toLocaleString('en-US');
       li.append(nm, sc);
@@ -961,7 +961,7 @@ ui.btnSubmit.addEventListener('click', async () => {
 });
 
 ui.initials.addEventListener('input', () => {
-  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 10);
+  ui.initials.value = ui.initials.value.toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, 10);
 });
 ui.initials.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') ui.btnSubmit.click();
