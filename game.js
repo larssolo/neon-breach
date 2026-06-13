@@ -823,6 +823,10 @@ function gameOver() {
   ui.initials.value = store.get('nb_initials') || '';
   ui.gameover.classList.remove('hidden');
   renderBoard(ui.overBoard);
+  setTimeout(() => {
+    ui.initials.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!IS_TOUCH) ui.initials.focus();
+  }, 120);
 }
 
 /* ---------------- HUD ---------------- */
@@ -955,8 +959,8 @@ ui.btnSubmit.addEventListener('click', async () => {
     ui.entryStatus.textContent = rank ? `SAVED — YOU ARE #${rank} ON THE LIST!` : 'Saved!';
     renderBoard(ui.overBoard);
   } catch (err) {
-    console.error(err);
-    ui.entryStatus.textContent = 'Error — try again';
+    console.error('submitScore:', err);
+    ui.entryStatus.textContent = err.message?.includes('500') ? 'Server error — check DB' : 'Network error — try again';
     ui.btnSubmit.disabled = false;
   }
 });
