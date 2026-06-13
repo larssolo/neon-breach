@@ -1267,56 +1267,64 @@ function drawScene(dt) {
 let lastT = performance.now();
 let rafId = 0;
 function frame(now) {
-  rafId = 0; // cleared while this frame executes; set again at end
+  rafId = 0; // ryddet mens denne frame kører; sættes igen i finally
   const dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
 
-  // hit-stop: kort frys ved kills giver slag-fornemmelse
-  if (hitStop > 0 && state === 'PLAYING' && !paused) {
-    hitStop -= dt;
-    drawScene(0);
+  // ALT spil-arbejde wrappes i try/finally: en enkelt uventet exception
+  // må ALDRIG dræbe rAF-kæden (det var årsagen til "spillet fryser, kan
+  // kun reloade"). Vi logger fejlen og planlægger altid næste frame.
+  try {
+    // hit-stop: kort frys ved kills giver slag-fornemmelse
+    if (hitStop > 0 && state === 'PLAYING' && !paused) {
+      hitStop -= dt;
+      drawScene(0);
+      return;
+    }
+
+    if (state === 'PLAYING' && !paused) {
+      gameTime += dt;
+      odActive = Math.max(0, odActive - dt);
+      const ts = player.slowT > 0 ? 0.35 : 1;   // time-scale for fjender/skud
+      updatePlayer(dt);
+      updateSpawner(dt);
+      updateEnemies(dt, ts);
+      updateBullets(dt, ts);
+      updatePowerups(dt);
+
+      comboT = Math.max(0, comboT - dt);
+      if (comboT === 0 && combo > 0) combo = 0;
+      updateComboUi();
+      updateOdUi();
+      updatePwUi();
+      ui.score.textContent = score.toLocaleString('da-DK');
+      ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
+
+      bannerT = Math.max(0, bannerT - dt);
+    }
+
+    if (!paused) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const pa = particles[i];
+        pa.t -= dt;
+        if (pa.t <= 0) { particles.splice(i, 1); continue; }
+        pa.x += pa.vx * dt; pa.y += pa.vy * dt;
+        pa.vy += 60 * dt;
+      }
+      for (let i = popups.length - 1; i >= 0; i--) {
+        const po = popups[i];
+        po.t -= dt; po.y -= 45 * dt;
+        if (po.t <= 0) popups.splice(i, 1);
+      }
+    }
+
+    drawScene(dt);
+  } catch (err) {
+    // Spring den dårlige frame over, men hold loopet i live.
+    console.error('NEON BREACH: frame-fejl (springer over, fortsætter):', err);
+  } finally {
     rafId = requestAnimationFrame(frame);
-    return;
   }
-
-  if (state === 'PLAYING' && !paused) {
-    gameTime += dt;
-    odActive = Math.max(0, odActive - dt);
-    const ts = player.slowT > 0 ? 0.35 : 1;   // time-scale for fjender/skud
-    updatePlayer(dt);
-    updateSpawner(dt);
-    updateEnemies(dt, ts);
-    updateBullets(dt, ts);
-    updatePowerups(dt);
-
-    comboT = Math.max(0, comboT - dt);
-    if (comboT === 0 && combo > 0) combo = 0;
-    updateComboUi();
-    updateOdUi();
-    updatePwUi();
-    ui.score.textContent = score.toLocaleString('da-DK');
-    ui.hiscore.textContent = hiscore.toLocaleString('da-DK');
-
-    bannerT = Math.max(0, bannerT - dt);
-  }
-
-  if (!paused) {
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const pa = particles[i];
-      pa.t -= dt;
-      if (pa.t <= 0) { particles.splice(i, 1); continue; }
-      pa.x += pa.vx * dt; pa.y += pa.vy * dt;
-      pa.vy += 60 * dt;
-    }
-    for (let i = popups.length - 1; i >= 0; i--) {
-      const po = popups[i];
-      po.t -= dt; po.y -= 45 * dt;
-      if (po.t <= 0) popups.splice(i, 1);
-    }
-  }
-
-  drawScene(dt);
-  rafId = requestAnimationFrame(frame);
 }
 
 /* ---------------- Init ---------------- */
