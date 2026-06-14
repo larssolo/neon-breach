@@ -205,7 +205,6 @@ addEventListener('keydown', (e) => {
   if (document.activeElement === ui.initials) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
   keys[e.key.toLowerCase()] = true;
-  if (e.key === ' ' && state === 'MENU') startGame();
   if (e.key === ' ' && state === 'GAMEOVER' && (scoreSubmitted || ui.entry.classList.contains('hidden'))) startGame();
   if (e.key === 'Shift' && state === 'PLAYING' && !paused) tryOverdrive();
   if (e.key.toLowerCase() === 'p' && state === 'PLAYING') togglePause();
@@ -233,7 +232,24 @@ cvs.addEventListener('touchmove', (e) => {
 }, { passive: false });
 cvs.addEventListener('touchend', (e) => { if (e.touches.length === 0) touchActive = false; });
 // Desktop: klik/space starter. Touch-enheder starter via styringsvælgeren.
-ui.menu.addEventListener('click', () => { if (state === 'MENU' && !IS_TOUCH) startGame(); });
+// Insert Coin button — plays sound, explodes, then starts (or shows ctrl pick on mobile)
+ui.pressStart.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state !== 'MENU') return;
+  Sfx.init(); Sfx.resume();
+  Music.playStart();
+  ui.pressStart.classList.add('exploding');
+  if (navigator.vibrate) navigator.vibrate(40);
+  setTimeout(() => {
+    ui.pressStart.classList.add('hidden');
+    ui.pressStart.classList.remove('exploding');
+    if (IS_TOUCH) {
+      ui.ctrlPick.classList.remove('hidden');
+    } else {
+      startGame();
+    }
+  }, 550);
+});
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state === 'PLAYING' && !paused) togglePause();
@@ -1371,11 +1387,8 @@ function frame(now) {
 }
 
 /* ---------------- Init ---------------- */
-// Touch-enheder: vis styringsvælger i stedet for "tryk space"
-if (IS_TOUCH) {
-  ui.pressStart.classList.add('hidden');
-  ui.ctrlPick.classList.remove('hidden');
-}
+// Touch and desktop both start with the INSERT COIN button.
+// On touch, tapping it opens the control picker; on desktop it starts immediately.
 ui.btnTilt.addEventListener('click', async (e) => {
   e.stopPropagation();
   ui.ctrlStatus.textContent = '';
