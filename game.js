@@ -41,7 +41,7 @@ const store = {
 
 /* ---------------- Lyd (WebAudio, syntetiseret) ---------------- */
 const Sfx = {
-  ctx: null, muted: store.get('nb_muted') === '1', musicOn: false, step: 0, musicTimer: null,
+  ctx: null, muted: false, musicOn: false, step: 0, musicTimer: null,
   init() {
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -97,7 +97,6 @@ const Sfx = {
   stopMusic()  { Music.stopGame(); },
   toggleMute() {
     this.muted = !this.muted;
-    store.set('nb_muted', this.muted ? '1' : '0');
     Music.applyMute();
     popup(VW / 2, VH / 2, this.muted ? 'SOUND OFF' : 'SOUND ON', '#8f8ab8');
   },
