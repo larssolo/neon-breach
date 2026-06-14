@@ -145,7 +145,39 @@ canvas#game {
 .blink { font-size: 13px; color: #fff; animation: blink 1.1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ---------- Insert Coin ---------- */
+/* ---------- Insert Coin fullscreen ---------- */
+#coin-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: radial-gradient(ellipse at 50% 60%, #1a0533 0%, #06010f 70%);
+  text-align: center;
+  padding: 24px;
+  cursor: pointer;
+}
+#coin-screen .coin-title { margin-bottom: 4px; }
+.coin-hint {
+  font-size: 9px;
+  color: #6f68a8;
+  letter-spacing: 3px;
+  animation: blink 1.4s steps(2) infinite;
+}
+#coin-screen.leaving {
+  animation: coinScreenLeave 0.65s cubic-bezier(0.4,0,0.2,1) forwards;
+  pointer-events: none;
+}
+@keyframes coinScreenLeave {
+  0%   { transform: translateY(0);    opacity: 1; }
+  30%  { transform: translateY(-18px); opacity: 1; filter: brightness(1.6); }
+  100% { transform: translateY(-110%); opacity: 0; filter: brightness(0.4); }
+}
+
+/* ---------- Insert Coin button ---------- */
 .coin-slot {
   font-family: 'Press Start 2P', monospace;
   display: inline-flex;
@@ -159,13 +191,9 @@ canvas#game {
   letter-spacing: 4px;
   font-size: 18px;
   text-shadow: 0 0 10px var(--orange), 0 0 24px rgba(255,176,0,0.6);
-  box-shadow:
-    0 0 18px rgba(255,176,0,0.55),
-    inset 0 0 14px rgba(255,176,0,0.18);
+  box-shadow: 0 0 18px rgba(255,176,0,0.55), inset 0 0 14px rgba(255,176,0,0.18);
   animation: coinPulse 1.05s steps(2) infinite;
   -webkit-tap-highlight-color: transparent;
-  position: relative;
-  z-index: 2;
 }
 .coin-slot .coin {
   display: inline-block;
@@ -175,33 +203,25 @@ canvas#game {
   animation: coinSpin 1.6s linear infinite;
 }
 .coin-slot:hover, .coin-slot:focus-visible {
-  background: var(--orange);
-  color: #06010f;
-  text-shadow: none;
-  outline: none;
+  background: var(--orange); color: #06010f; text-shadow: none; outline: none;
 }
-.coin-slot:hover .coin, .coin-slot:focus-visible .coin {
-  color: #06010f;
-  text-shadow: none;
-}
+.coin-slot:hover .coin, .coin-slot:focus-visible .coin { color: #06010f; text-shadow: none; }
 @keyframes coinPulse {
   0%, 100% { box-shadow: 0 0 18px rgba(255,176,0,0.55), inset 0 0 14px rgba(255,176,0,0.18); }
-  50%      { box-shadow: 0 0 30px rgba(255,176,0,0.95), 0 0 60px rgba(255,43,214,0.45), inset 0 0 22px rgba(255,176,0,0.30); }
+  50%       { box-shadow: 0 0 36px rgba(255,176,0,0.95), 0 0 70px rgba(255,43,214,0.45), inset 0 0 22px rgba(255,176,0,0.30); }
 }
 @keyframes coinSpin {
-  0%   { transform: scaleX(1); }
-  50%  { transform: scaleX(0.18); }
-  100% { transform: scaleX(1); }
+  0% { transform: scaleX(1); } 50% { transform: scaleX(0.18); } 100% { transform: scaleX(1); }
 }
-.coin-slot.exploding {
-  animation: coinExplode 0.55s steps(8) forwards;
-  pointer-events: none;
-}
-@keyframes coinExplode {
-  0%   { transform: scale(1);    opacity: 1; filter: brightness(1); }
-  20%  { transform: scale(1.35); opacity: 1; filter: brightness(2.4); box-shadow: 0 0 80px 30px var(--orange), 0 0 140px 60px var(--pink); }
-  40%  { transform: scale(0.85) rotate(8deg);  opacity: 1; filter: brightness(3); }
-  100% { transform: scale(2.4)  rotate(-12deg); opacity: 0; filter: brightness(0.6); box-shadow: 0 0 0 0 transparent; }
+
+/* START button in menu */
+.btn-start {
+  font-size: 16px;
+  padding: 16px 36px;
+  color: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 18px rgba(0,246,255,0.5);
+  letter-spacing: 5px;
 }
 
 .controls {

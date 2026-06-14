@@ -19,7 +19,8 @@ const ui = {
   combo: $('hud-combo'), comboMult: $('combo-mult'), comboFill: $('combo-fill'),
   odWrap: $('od-wrap'), odFill: $('od-fill'), odHint: $('od-hint'), pwStatus: $('pw-status'),
   finalStats: $('final-stats'),
-  pressStart: $('press-start'), ctrlPick: $('ctrl-pick'), btnTilt: $('btn-tilt'),
+  pressStart: $('press-start'), coinScreen: $('coin-screen'), btnPlay: $('btn-play'),
+  ctrlPick: $('ctrl-pick'), btnTilt: $('btn-tilt'),
   btnDrag: $('btn-drag'), ctrlStatus: $('ctrl-status'),
   btnOdMob: $('btn-od-mob'), btnPauseMob: $('btn-pause-mob'),
   menu: $('menu'), menuBoard: $('menu-board'), pause: $('pause'),
@@ -231,24 +232,34 @@ cvs.addEventListener('touchmove', (e) => {
   const p = canvasPos(e.touches[0]); touch.x = p.x; touch.y = p.y;
 }, { passive: false });
 cvs.addEventListener('touchend', (e) => { if (e.touches.length === 0) touchActive = false; });
-// Desktop: klik/space starter. Touch-enheder starter via styringsvælgeren.
-// Insert Coin button — plays sound, explodes, then starts (or shows ctrl pick on mobile)
-ui.pressStart.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (state !== 'MENU') return;
+// INSERT COIN fullscreen — plays music, flies up, reveals menu with START button
+function dismissCoinScreen() {
+  if (!ui.coinScreen || ui.coinScreen.classList.contains('leaving')) return;
   Sfx.init(); Sfx.resume();
   Music.playStart();
-  ui.pressStart.classList.add('exploding');
   if (navigator.vibrate) navigator.vibrate(40);
+  ui.coinScreen.classList.add('leaving');
   setTimeout(() => {
-    ui.pressStart.classList.add('hidden');
-    ui.pressStart.classList.remove('exploding');
-    if (IS_TOUCH) {
-      ui.ctrlPick.classList.remove('hidden');
-    } else {
-      startGame();
-    }
-  }, 550);
+    ui.coinScreen.classList.add('hidden');
+    ui.menu.classList.remove('hidden');
+  }, 600);
+}
+ui.coinScreen.addEventListener('click', dismissCoinScreen);
+// Keyboard: any key dismisses the coin screen
+addEventListener('keydown', (e) => {
+  if (!ui.coinScreen.classList.contains('hidden')) { dismissCoinScreen(); }
+}, { capture: true });
+
+// START button in menu
+ui.btnPlay.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (state !== 'MENU') return;
+  if (IS_TOUCH) {
+    ui.btnPlay.classList.add('hidden');
+    ui.ctrlPick.classList.remove('hidden');
+  } else {
+    startGame();
+  }
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -1415,14 +1426,5 @@ document.addEventListener('visibilitychange', () => {
 ui.hiscore.textContent = hiscore.toLocaleString('en-US');
 renderBoard(ui.menuBoard);
 Music.init();
-// Try autoplay (will silently fail on mobile until first user interaction)
-Music.playStart();
-// On first interaction, ensure start.mp4 begins playing if autoplay was blocked
-const kickStartMusic = () => {
-  if (state === 'MENU' || state === 'GAMEOVER') Music.playStart();
-  window.removeEventListener('pointerdown', kickStartMusic);
-  window.removeEventListener('keydown', kickStartMusic);
-};
-window.addEventListener('pointerdown', kickStartMusic, { once: true });
-window.addEventListener('keydown', kickStartMusic, { once: true });
+// Music only starts when the user clicks INSERT COIN (dismissCoinScreen handles it)
 rafId = requestAnimationFrame(frame);
