@@ -177,6 +177,14 @@ canvas#game {
   letter-spacing: 3px;
   animation: blink 1.4s steps(2) infinite;
 }
+.play-count {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--cyan);
+  opacity: 0.7;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px var(--cyan);
+}
 #coin-screen.leaving {
   animation: coinScreenLeave 0.65s cubic-bezier(0.4,0,0.2,1) forwards;
   pointer-events: none;

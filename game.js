@@ -27,6 +27,7 @@ const ui = {
   gameover: $('gameover'), finalScore: $('final-score'), finalWave: $('final-wave'),
   entry: $('entry'), initials: $('initials'), btnSubmit: $('btn-submit'),
   entryStatus: $('entry-status'), overBoard: $('over-board'), btnRestart: $('btn-restart'),
+  playCount: $('play-count'),
 };
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -235,6 +236,7 @@ cvs.addEventListener('touchend', (e) => { if (e.touches.length === 0) touchActiv
 // INSERT COIN fullscreen — plays music, flies up, reveals menu with START button
 function dismissCoinScreen() {
   if (!ui.coinScreen || ui.coinScreen.classList.contains('leaving')) return;
+  fetch('/api/plays', { method: 'POST' }).catch(() => {});
   Sfx.init(); Sfx.resume();
   Music.playStart();
   if (navigator.vibrate) navigator.vibrate(40);
@@ -942,6 +944,18 @@ function updatePwUi() {
 const cfg = window.GAME_CONFIG || {};
 const API_URL = cfg.API_URL || '/api/scores';
 
+async function fetchPlayCount() {
+  try {
+    const res = await fetch('/api/plays');
+    if (!res.ok) return;
+    const { count } = await res.json();
+    if (ui.playCount) {
+      ui.playCount.textContent = '◉ ' + Number(count).toLocaleString() + ' BRAVE PILOTS HAVE PLAYED';
+      ui.playCount.classList.remove('hidden');
+    }
+  } catch { /* fail silently */ }
+}
+
 async function fetchScores() {
   try {
     const res = await fetch(API_URL);
@@ -1425,6 +1439,7 @@ document.addEventListener('visibilitychange', () => {
 
 ui.hiscore.textContent = hiscore.toLocaleString('en-US');
 renderBoard(ui.menuBoard);
+fetchPlayCount();
 Music.init();
 // Music only starts when the user clicks INSERT COIN (dismissCoinScreen handles it)
 rafId = requestAnimationFrame(frame);
