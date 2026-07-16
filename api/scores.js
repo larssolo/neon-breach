@@ -8,6 +8,9 @@
 
 const { neon } = require('@neondatabase/serverless');
 
+// Leaderboard v2: v2-scores lever på et frisk board (gamle v1-rækker bevares som historik).
+const SCORE_VERSION = 2;
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -40,7 +43,8 @@ module.exports = async function handler(req, res) {
           return res.status(400).json({ error: 'Ugyldig score' });
         }
         const [row] = await sql`
-          SELECT COUNT(*)::int AS cnt FROM scores WHERE score > ${sc}
+          SELECT COUNT(*)::int AS cnt FROM scores
+          WHERE version = ${SCORE_VERSION} AND score > ${sc}
         `;
         return res.json({ rank: row.cnt + 1 });
       }
@@ -49,6 +53,7 @@ module.exports = async function handler(req, res) {
       const rows = await sql`
         SELECT name, score, wave
         FROM scores
+        WHERE version = ${SCORE_VERSION}
         ORDER BY score DESC
         LIMIT 10
       `;
@@ -71,7 +76,8 @@ module.exports = async function handler(req, res) {
       }
 
       await sql`
-        INSERT INTO scores (name, score, wave) VALUES (${name}, ${score}, ${wave})
+        INSERT INTO scores (name, score, wave, version)
+        VALUES (${name}, ${score}, ${wave}, ${SCORE_VERSION})
       `;
       return res.status(201).end();
     }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>NEON BREACH — 80s Arcade Shooter</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><polygon points='8,1 14,14 8,11 2,14' fill='%2300f6ff'/></svg>">
-<meta name="description" content="Synthwave arcade shooter. Survive the waves, build your combo, chase the high score.">
+<meta name="description" content="Synthwave arcade shooter. Fight through 5 neon sectors, beat unique bosses, build your ship, chase the high score.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
@@ -33,8 +33,9 @@
       <div id="pw-status"></div>
     </div>
     <div class="hud-center">
-      <div class="hud-label">WAVE</div>
-      <div id="hud-wave" class="hud-value">1</div>
+      <div class="hud-label">SECTOR</div>
+      <div id="hud-wave" class="hud-value">1-1</div>
+      <div id="hud-loop" class="hud-loop"></div>
     </div>
     <div class="hud-right">
       <div class="hud-label">HI-SCORE</div>
@@ -73,6 +74,7 @@
       <div><b>SPACE</b> — shoot (hold)</div>
       <div><b>SHIFT</b> — OVERDRIVE (when meter is full)</div>
       <div><b>P</b> — pause &nbsp; <b>M</b> — sound on/off</div>
+      <div class="tip">5 SECTORS · 5 UNIQUE BOSSES · PICK UPGRADES BETWEEN SECTORS</div>
       <div class="tip">MOBILE: tilt to fly · hold finger to shoot</div>
       <div class="tip">TIP: Fly CLOSE past enemy bullets (graze) for bonus + overdrive</div>
     </div>
@@ -80,7 +82,14 @@
       <div class="board-title">— HALL OF FAME —</div>
       <ol id="menu-board" class="board-list"><li class="dim">Loading scores…</li></ol>
     </div>
-    <div class="credit">© 2026 <a href="https://www.larssohl.dk" target="_blank" rel="noopener">larssohl.dk</a> · Built with Claude Code 2026 · v1.13.0</div>
+    <div class="credit">© 2026 <a href="https://www.larssohl.dk" target="_blank" rel="noopener">larssohl.dk</a> · Built with Claude Code 2026 · v2.0.0</div>
+  </div>
+
+  <!-- UPGRADE (efter hvert boss-kill) -->
+  <div id="upgrade" class="overlay hidden">
+    <div class="big-label">SYSTEM UPGRADE</div>
+    <div class="upg-hint">CHOOSE ONE — PRESS 1 / 2 / 3 OR TAP</div>
+    <div id="upg-cards" class="upg-cards"></div>
   </div>
 
   <!-- PAUSE -->
@@ -94,7 +103,7 @@
     <div class="big-label danger">GAME OVER</div>
     <div class="final">
       <div>SCORE <span id="final-score">0</span></div>
-      <div>WAVE <span id="final-wave">1</span></div>
+      <div>SECTOR <span id="final-wave">1-1</span></div>
     </div>
     <div id="final-stats" class="final-stats"></div>
     <div id="entry">
@@ -120,6 +129,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="sectors.js"></script>
 <script src="game.js"></script>
 <script src="backdrop.js"></script>
 </body>

@@ -112,6 +112,7 @@ canvas#game {
 #pw-status span { display: block; }
 
 .tip { font-size: 16px; color: #6f68a8; margin-top: 8px; }
+.hud-loop { margin-top: 6px; font-size: 8px; color: var(--pink); text-shadow: 0 0 8px var(--pink); letter-spacing: 2px; }
 .final-stats { font-family: 'VT323', monospace; font-size: 21px; color: #8f8ab8; letter-spacing: 1px; }
 
 /* ---------- Overlays ---------- */
@@ -318,6 +319,46 @@ canvas#game {
 .credit { font-size: 8px; color: #564f8a; letter-spacing: 3px; }
 .credit a { color: #564f8a; text-decoration: none; }
 .credit a:hover { color: var(--cyan); }
+
+/* ---------- Upgrade-kort (2.0) ---------- */
+.upg-hint {
+  font-size: 9px;
+  color: #8f8ab8;
+  letter-spacing: 2px;
+  animation: blink 1.2s steps(2) infinite;
+}
+.upg-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(420px, 88%);
+}
+.upg-card {
+  --uc: var(--cyan);
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 18px 16px;
+  background: rgba(10, 2, 30, 0.92);
+  border: 2px solid var(--uc);
+  color: var(--uc);
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0, 246, 255, 0.18);
+  transition: transform .12s, background .12s, color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.upg-card:hover, .upg-card:focus-visible {
+  background: var(--uc);
+  color: #06010f;
+  transform: translateY(-3px);
+  outline: none;
+}
+.upg-key { font-size: 10px; opacity: 0.7; }
+.upg-name { font-size: 14px; letter-spacing: 2px; text-shadow: 0 0 10px currentColor; }
+.upg-desc { font-family: 'VT323', monospace; font-size: 19px; letter-spacing: 1px; color: #b9b3e6; }
+.upg-card:hover .upg-desc, .upg-card:focus-visible .upg-desc { color: #06010f; }
 
 /* ---------- Mobil ---------- */
 .ctrl-pick { display: flex; flex-direction: column; align-items: center; gap: 16px; }
