@@ -11,6 +11,18 @@ const { neon } = require('@neondatabase/serverless');
 // Leaderboard v2: v2-scores lever på et frisk board (gamle v1-rækker bevares som historik).
 const SCORE_VERSION = 2;
 
+// Selvhelbredende skema: sikrer at `version`-kolonnen (v2.0-migrationen) findes,
+// så leaderboardet virker selv hvis migrationen aldrig blev kørt i Neon Console.
+// Idempotent (IF NOT EXISTS) og caches pr. varm instans, så det reelt kun rammer
+// databasen én gang efter en cold start.
+let schemaEnsured = false;
+async function ensureSchema(sql) {
+  if (schemaEnsured) return;
+  await sql`ALTER TABLE public.scores ADD COLUMN IF NOT EXISTS version smallint NOT NULL DEFAULT 1`;
+  await sql`CREATE INDEX IF NOT EXISTS scores_version_score_idx ON public.scores (version, score DESC)`;
+  schemaEnsured = true;
+}
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -32,6 +44,8 @@ module.exports = async function handler(req, res) {
   const sql = neon(dbUrl);
 
   try {
+    await ensureSchema(sql);
+
     /* -------- GET /api/scores -------- */
     if (req.method === 'GET') {
       const { rank } = req.query;
