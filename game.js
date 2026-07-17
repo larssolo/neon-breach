@@ -199,6 +199,16 @@ async function enableTilt() {
 
 function calibrateTilt() { tilt.x0 = tilt.rawX; tilt.y0 = tilt.rawY; tilt.gx = 0; tilt.gy = 0; }
 
+// Slip orienteringssensoren, når tilt ikke er i brug (fx ved game over eller
+// når man vælger drag). Ellers bliver deviceorientation-lytteren hængende, og
+// browseren viser sin sensor/placerings-indikator resten af sessionen.
+function disableTilt() {
+  if (!tilt.enabled) return;
+  removeEventListener('deviceorientation', onOrient);
+  tilt.enabled = false;
+  tilt.gx = 0; tilt.gy = 0;
+}
+
 let wakeLock = null;
 async function reqWakeLock() {
   try { wakeLock = await navigator.wakeLock.request('screen'); } catch { /* ikke understøttet */ }
@@ -1460,7 +1470,10 @@ function startGame() {
       if (fs && fs.then) fs.then(() => screen.orientation?.lock?.('portrait').catch(() => {})).catch(() => {});
     } catch { /* ignore */ }
   }
-  if (ctrlMode === 'tilt' && tilt.enabled) {
+  if (ctrlMode === 'tilt') {
+    // Gen-armér sensoren ved genstart (PLAY AGAIN) — den blev sluppet ved game
+    // over. iOS-tilladelsen holder hele sessionen, så ingen ny prompt her.
+    if (!tilt.enabled) { addEventListener('deviceorientation', onOrient); tilt.enabled = true; }
     calibrateTilt();
     banner('TILT TO FLY');
   }
@@ -1475,6 +1488,7 @@ function togglePause() {
 function gameOver() {
   if (state === 'GAMEOVER') return;
   state = 'GAMEOVER';
+  disableTilt();   // slip sensoren -> browserens placerings-/sensor-indikator slukker
   Sfx.stopMusic(); Sfx.over();
   Music.playStart();
   ui.hud.classList.add('hidden');
@@ -2540,6 +2554,7 @@ ui.btnTilt.addEventListener('click', async (e) => {
 });
 ui.btnDrag.addEventListener('click', (e) => {
   e.stopPropagation();
+  disableTilt();   // vælger man drag, skal sensoren ikke være aktiv
   ctrlMode = 'drag';
   store.set('nb_ctrl', 'drag');
   startGame();
