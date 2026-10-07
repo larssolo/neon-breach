@@ -1,0 +1,360 @@
+[
+ {
+  "name": "city",
+  "seed": 12,
+  "setup": {
+   "wave": 4,
+   "mods": {
+    "wingman": 2,
+    "spread": 1,
+    "rapid": 1
+   },
+   "bot": {
+    "prefY": 0.7,
+    "hpMul": 3,
+    "xMin": 0.24,
+    "xMax": 0.76
+   }
+  },
+  "preroll": 2.6,
+  "frames": 240
+ },
+ {
+  "name": "city_reveal",
+  "seed": 13,
+  "setup": {
+   "wave": 4,
+   "mods": {
+    "wingman": 2,
+    "spread": 2,
+    "rapid": 2
+   },
+   "bot": {
+    "prefY": 0.56,
+    "hpMul": 4
+   }
+  },
+  "preroll": 2.8,
+  "frames": 180
+ },
+ {
+  "name": "belt",
+  "seed": 22,
+  "setup": {
+   "wave": 9,
+   "mods": {
+    "spread": 1,
+    "rapid": 1,
+    "wingman": 1
+   },
+   "bot": {
+    "prefY": 0.72,
+    "hpMul": 2.5,
+    "xMin": 0.24,
+    "xMax": 0.76
+   }
+  },
+  "preroll": 2.4,
+  "frames": 240
+ },
+ {
+  "name": "storm",
+  "seed": 32,
+  "setup": {
+   "wave": 14,
+   "mods": {
+    "spread": 1,
+    "rapid": 1
+   },
+   "bot": {
+    "prefY": 0.72,
+    "hpMul": 2.5,
+    "xMin": 0.24,
+    "xMax": 0.76
+   }
+  },
+  "preroll": 1.6,
+  "frames": 300
+ },
+ {
+  "name": "tunnel",
+  "seed": 42,
+  "setup": {
+   "wave": 19,
+   "mods": {
+    "wingman": 2,
+    "spread": 1,
+    "rapid": 1
+   },
+   "bot": {
+    "prefY": 0.7,
+    "hpMul": 2.5
+   }
+  },
+  "preroll": 2.4,
+  "frames": 270
+ },
+ {
+  "name": "mother",
+  "seed": 52,
+  "setup": {
+   "wave": 24,
+   "mods": {
+    "spread": 1,
+    "rapid": 1,
+    "wingman": 1
+   },
+   "bot": {
+    "prefY": 0.72,
+    "hpMul": 2.5,
+    "xMin": 0.24,
+    "xMax": 0.76
+   }
+  },
+  "preroll": 2.6,
+  "frames": 240
+ },
+ {
+  "name": "boss_gate",
+  "seed": 61,
+  "setup": {
+   "wave": 30,
+   "mods": {
+    "spread": 1,
+    "rapid": 2,
+    "wingman": 1
+   },
+   "bot": {
+    "prefY": 0.62
+   }
+  },
+  "preroll": 3.4,
+  "frames": 240,
+  "actions": [
+   {
+    "at": -1.0,
+    "js": "enemies.forEach(e=>{if(e.type==='boss'){e.hp=e.maxHp*0.55}})"
+   }
+  ]
+ },
+ {
+  "name": "boss_crusher",
+  "seed": 72,
+  "setup": {
+   "wave": 35,
+   "mods": {
+    "spread": 1,
+    "rapid": 2,
+    "wingman": 1
+   },
+   "bot": {
+    "prefY": 0.62
+   }
+  },
+  "preroll": 3.4,
+  "frames": 300,
+  "actions": [
+   {
+    "at": -1.0,
+    "js": "enemies.forEach(e=>{if(e.type==='boss'){e.hp=e.maxHp*0.5}})"
+   }
+  ]
+ },
+ {
+  "name": "boss_solar",
+  "seed": 81,
+  "setup": {
+   "wave": 15,
+   "mods": {
+    "spread": 1,
+    "rapid": 2,
+    "wingman": 1
+   },
+   "bot": {
+    "prefY": 0.66
+   }
+  },
+  "preroll": 3.0,
+  "frames": 300,
+  "actions": [
+   {
+    "at": -1.5,
+    "js": "enemies.forEach(e=>{if(e.type==='boss'){e.hp=e.maxHp*0.45}})"
+   }
+  ]
+ },
+ {
+  "name": "boss_fire",
+  "seed": 92,
+  "setup": {
+   "wave": 45,
+   "mods": {
+    "spread": 1,
+    "rapid": 2,
+    "wingman": 2
+   },
+   "bot": {
+    "prefY": 0.62
+   }
+  },
+  "preroll": 3.4,
+  "frames": 240,
+  "actions": [
+   {
+    "at": -1.0,
+    "js": "enemies.forEach(e=>{if(e.type==='boss'){e.hp=e.maxHp*0.36}})"
+   }
+  ]
+ },
+ {
+  "name": "boss_mother",
+  "seed": 101,
+  "setup": {
+   "wave": 50,
+   "mods": {
+    "spread": 2,
+    "rapid": 2,
+    "wingman": 2
+   },
+   "bot": {
+    "prefY": 0.62
+   }
+  },
+  "preroll": 4.6,
+  "frames": 240
+ },
+ {
+  "name": "combo",
+  "seed": 122,
+  "setup": {
+   "wave": 4,
+   "mods": {
+    "wingman": 2,
+    "spread": 2,
+    "rapid": 2
+   },
+   "bot": {
+    "prefY": 0.6,
+    "hpMul": 2.5
+   }
+  },
+  "preroll": 2.4,
+  "frames": 180,
+  "actions": [
+   {
+    "at": -0.05,
+    "js": "combo=36;comboT=2.5;"
+   },
+   {
+    "at": 1.5,
+    "js": "combo=Math.max(combo,36);comboT=2.5;"
+   },
+   {
+    "at": 3.0,
+    "js": "combo=Math.max(combo,36);comboT=2.5;"
+   }
+  ]
+ },
+ {
+  "name": "upgrade_pick",
+  "seed": 141,
+  "setup": {
+   "wave": 2,
+   "bot": {
+    "prefY": 0.66,
+    "hpMul": 2
+   }
+  },
+  "preroll": 1.6,
+  "frames": 120,
+  "actions": [
+   {
+    "at": 0.3,
+    "js": "player.mods.wingman=2;player.mods.spread=2;popup(player.x,player.y-40,'WINGMAN!','#39ff6a',true);Sfx.odGo();"
+   }
+  ]
+ },
+ {
+  "name": "graze2",
+  "seed": 131,
+  "setup": {
+   "wave": 13,
+   "x": 400,
+   "y": 900,
+   "bot": {
+    "enabled": false
+   }
+  },
+  "preroll": 1.0,
+  "frames": 140,
+  "speed": [
+   {
+    "from": 0,
+    "speed": 1
+   },
+   {
+    "from": 54,
+    "speed": 0.3
+   },
+   {
+    "from": 109,
+    "speed": 1
+   }
+  ],
+  "actions": [
+   {
+    "at": -0.9,
+    "js": "spawner.queue=[];spawner.betweenT=999;enemies.length=0;ebullets.length=0;hazards.length=0;touchActive=true;touch.x=400;touch.y=960;"
+   },
+   {
+    "at": 0.0,
+    "js": "spawnEnemy('sniper',250,170);var a=enemies[enemies.length-1];a.y=a.ty=170;a.hp=a.maxHp=999;a.phase='aim';a.aimT=0.3; spawnEnemy('sniper',560,150);var b=enemies[enemies.length-1];b.y=b.ty=150;b.hp=b.maxHp=999;b.phase='aim';b.aimT=0.42;"
+   },
+   {
+    "at": 0.55,
+    "js": "touch.x=433;"
+   }
+  ]
+ },
+ {
+  "name": "od_climax2",
+  "seed": 111,
+  "setup": {
+   "wave": 50,
+   "mods": {
+    "spread": 2,
+    "rapid": 3,
+    "wingman": 2
+   },
+   "bot": {
+    "prefY": 0.58
+   }
+  },
+  "preroll": 4.2,
+  "frames": 150,
+  "speed": [
+   {
+    "from": 0,
+    "speed": 1
+   },
+   {
+    "from": 101,
+    "speed": 0.35
+   }
+  ],
+  "actions": [
+   {
+    "at": -0.8,
+    "js": "(()=>{const b=enemies.find(e=>e.type==='boss'); if(b){b.pods.forEach(p=>p.alive=false); b.hp=b.maxHp*0.22;}})()"
+   },
+   {
+    "at": 2.4,
+    "js": "overdrive=100; tryOverdrive(); combo=38; comboT=2.5;"
+   },
+   {
+    "at": 3.3333,
+    "js": "(()=>{const b=enemies.find(e=>e.type==='boss'); if(b) killEnemy(b); hitStop=0; flashT=0;})()"
+   }
+  ]
+ }
+]
