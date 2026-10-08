@@ -35,7 +35,7 @@ const FROM = Number(arg('from', 0));
 const TO = arg('to', null);
 const URL_TEXT = arg('url', '');
 const KEEP_EVERY = Number(arg('keep', 0));   // gem hver N'te frame som PNG til gennemsyn
-const CRF = String(arg('crf', 23));          // endelig kvalitet (lavere = bedre/større) — 23 ≈ 40 MB
+const CRF = String(arg('crf', 23));          // endelig kvalitet (lavere = bedre/større) — 23 ≈ 39 MB
 
 fs.mkdirSync(WORK, { recursive: true });
 const log = (...a) => console.log('[promo]', ...a);

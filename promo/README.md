@@ -1,6 +1,6 @@
 # NEON BREACH — promo-film (9:16)
 
-**`neon-breach-promo.mp4`** — 48 sek., 1080×1920, 60 fps, H.264 High + AAC 48 kHz (~41 MB). Klar til TikTok, Instagram Reels og YouTube Shorts.
+**`neon-breach-promo.mp4`** — 48 sek., 1080×1920, 60 fps, H.264 High + AAC 48 kHz (~39 MB). Klar til TikTok, Instagram Reels og YouTube Shorts.
 
 Filmen er optaget fra **det rigtige spil** (`index.html` + `game.js`, uændret), drevet frame-for-frame af en scriptet autopilot, med 80'er-grafik, overgange og et originalt 8-bit soundtrack lagt ovenpå.
 

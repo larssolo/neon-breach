@@ -181,7 +181,18 @@
     const lo = p.r + 10 + wallW, hi = VW - p.r - 10 - wallW;
     touch.x = clamp(tx, lo, hi);
     touch.y = (o.y ?? VH * 0.8) + 60;
-    touchActive = o.fire !== false;
+    touchActive = true;   // touch styrer bevægelsen — skud holdes tilbage via cooldown nedenfor
+    // Skyd kun når en fjende står (næsten) lige over skibet, som en rigtig spiller —
+    // ellers drukner billedet i skud. Under OVERDRIVE skydes der for fuld kraft.
+    let fire = o.fire !== false;
+    if (fire && o.aim !== false && odActive <= 0) {
+      fire = enemies.some((e) => {
+        if (e.intangible || e.type === 'mine' || e.y < 0 || e.y > p.y - 40) return false;
+        const tol = e.type === 'boss' ? (e.segW ? 3.5 * e.segW : e.r * 1.8) : e.r + 26;
+        return Math.abs(e.x - p.x) < tol;
+      });
+    }
+    if (!fire) { p.fireCd = Math.max(p.fireCd, 0.02); p.droneCd = Math.max(p.droneCd, 0.02); }
   };
 
   /* ---------- Værktøjer ---------- */

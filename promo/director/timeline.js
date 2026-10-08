@@ -24,7 +24,6 @@
   PD.holdWave = (n) => { if (wave >= n && spawner.betweenT > 0) spawner.betweenT = 99; };
   const boss = () => enemies.find((e) => e.type === 'boss');
   const hold = (b, lo, hi) => { if (b) b.hp = clamp(b.hp, b.maxHp * lo, b.maxHp * hi); };
-  const STRONG = { spread: 2, rapid: 2, wingman: 2, pierce: 1 };
 
   /* =========================================================
      KLIP
@@ -34,14 +33,14 @@
   const city = new PD.GameClip({
     id: 'city', start: T(2, 2), end: T(4), sim: 2.1, preroll: 2.2, seed: 11,
     setup() {
-      PD.freshRun({ seed: 11, score: 18450, mods: { spread: 1, rapid: 2 } });
+      PD.freshRun({ seed: 11, score: 18450, mods: { rapid: 1 } });
       PD.gotoWave(4);
       $s.field('drone', 9, 60, 470, 11);
       $s.wall('splitter', 4, 260);
     },
     script(c, ct, dt, t) {
       PD.holdWave(4);
-      if (t < 3.12) PD.pilot({ hunt: false, x: 400 + Math.sin(ct * 2.7) * 250, y: 1060, fire: t > 2.22 });
+      if (t < 3.12) PD.pilot({ hunt: false, x: 400 + Math.sin(ct * 2.7) * 250, y: 1060, fire: t > 2.22, aim: false });
       else PD.pilot({ y: 1020 });
       c.once('v1', ct > -1.0, () => $s.vee('drone', 7, 480, -40));
       c.once('w1', ct > 0.1, () => $s.wall('drone', 6));
@@ -193,7 +192,7 @@
   const belt = new PD.GameClip({
     id: 'belt', start: T(4), end: T(6), preroll: 2.4, seed: 22,
     setup() {
-      PD.freshRun({ seed: 22, score: 61300, mods: { spread: 1, rapid: 1 } });
+      PD.freshRun({ seed: 22, score: 61300 });
       PD.gotoWave(9);
       $s.field('asteroid', 5, -80, 300, 22);
       $s.field('drone', 6, 0, 380, 23);
@@ -211,7 +210,7 @@
   const storm = new PD.GameClip({
     id: 'storm', start: T(6), end: T(8), preroll: 2.2, seed: 33,
     setup() {
-      PD.freshRun({ seed: 33, score: 104880, mods: { spread: 1, rapid: 1 } });
+      PD.freshRun({ seed: 33, score: 104880 });
       PD.gotoWave(14);
       $s.field('drone', 7, 20, 400, 33);
     },
@@ -230,7 +229,7 @@
   const tunnel = new PD.GameClip({
     id: 'tunnel', start: T(8), end: T(9), preroll: 2.0, seed: 44,
     setup() {
-      PD.freshRun({ seed: 44, score: 147210, mods: { spread: 1, rapid: 1 } });
+      PD.freshRun({ seed: 44, score: 147210 });
       PD.gotoWave(18);
       $s.field('drone', 6, 40, 420, 44);
       $s.wall('splitter', 4, 200);
@@ -247,7 +246,7 @@
   const motherS = new PD.GameClip({
     id: 'motherS', start: T(9), end: T(10), preroll: 2.4, seed: 55,
     setup() {
-      PD.freshRun({ seed: 55, score: 182640, mods: { spread: 1, rapid: 1 } });
+      PD.freshRun({ seed: 55, score: 182640 });
       PD.gotoWave(24);
       $s.field('drone', 7, 80, 460, 55);
       $s.add('tank', 400, 120);
@@ -268,7 +267,7 @@
     speed: (t) => (t < GZ0 + 0.25 ? U.lerp(1, 0.26, U.easeOut(U.inv(GZ0 - 0.2, GZ0 + 0.25, t)))
       : t < GZ1 - 0.32 ? 0.26 : U.lerp(0.26, 1, U.easeIn(U.inv(GZ1 - 0.32, GZ1, t)))),
     setup(c) {
-      PD.freshRun({ seed: 66, score: 205115, mods: { graze: 1, spread: 1 }, shipX: 400, shipY: 1060 });
+      PD.freshRun({ seed: 66, score: 205115, mods: { graze: 1 }, shipX: 400, shipY: 1060 });
       PD.gotoWave(2);
       overdrive = 34;
       // kugler der passerer skibet i 34 px afstand (graze-zonen er 27-40 px)
@@ -286,7 +285,7 @@
     },
     script(c, ct) {
       PD.holdWave(2);
-      PD.pilot({ hunt: false, x: 400, y: 1060, fire: true });
+      PD.pilot({ hunt: false, x: 400, y: 1060, fire: false });
       c.plan.forEach((b, k) => c.once('g' + k, ct >= b.at, () => ebullets.push({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, r: 5 * S, color: b.col })));
       if (c.lastGr === undefined) c.lastGr = grazes;
     },
@@ -311,7 +310,7 @@
     recordFrom: 0.5,
     banners: (txt) => txt === 'OVERDRIVE!',
     setup(c) {
-      PD.freshRun({ seed: 77, score: 214980, lives: 1, weapon: 'triple', mods: { rapid: 1 } });
+      PD.freshRun({ seed: 77, score: 214980, lives: 1 });
       PD.gotoWave(3);
       combo = 33; comboT = 2.5; overdrive = 100;
       $s.field('drone', 12, 140, 640, 77);
@@ -378,7 +377,7 @@
   const upgrade = new PD.GameClip({
     id: 'upgrade', start: UP0, end: T(16), preroll: 1.4, seed: 88,
     setup() {
-      PD.freshRun({ seed: 88, score: 268330, mods: { spread: 1, rapid: 1, wingman: 1 } });
+      PD.freshRun({ seed: 88, score: 268330, mods: { wingman: 1 } });
       PD.gotoWave(3);
       $s.field('drone', 9, 150, 620, 8);
       $s.wall('splitter', 5, 60);
@@ -470,7 +469,7 @@
     preroll: 1.3,
     preDraw: flicker,
     setup(c) {
-      PD.freshRun({ seed: o.seed, score: o.score, mods: { spread: 1, rapid: 1, wingman: 2 }, shipY: o.shipY ?? 1040 });
+      PD.freshRun({ seed: o.seed, score: o.score, shipY: o.shipY ?? 1040 });
       PD.spawnBoss(o.wave, { y: o.y ?? 250 * S });
       o.init && o.init(c, boss());
     },
@@ -520,7 +519,7 @@
     speed: (t) => (t < KILL - 0.25 ? 1 : U.lerp(1, 0.22, U.easeOut(U.inv(KILL - 0.25, KILL, t)))),
     preDraw: flicker,
     setup(c) {
-      PD.freshRun({ seed: 105, score: 342600, mods: STRONG, shipY: 1040 });
+      PD.freshRun({ seed: 105, score: 342600, mods: { wingman: 2, rapid: 1 }, shipY: 1040 });
       const b = PD.spawnBoss(25, { y: 270 * S });
       b.pods.forEach((pd) => { pd.hp = pd.maxHp = 400; });
     },
@@ -546,7 +545,6 @@
     },
     script(c, ct, dt, t) {
       const b = boss();
-      c.once('od', ct >= -0.05, () => { overdrive = 100; tryOverdrive(); odActive = 9; });
       const podKill = (k) => {
         if (!b || !b.pods[k].alive) return;
         const pd = b.pods[k];
@@ -589,9 +587,13 @@
   const loop2 = new PD.GameClip({
     id: 'loop2', start: T(21), end: T(22), preroll: 1.2, seed: 120,
     setup() {
-      PD.freshRun({ seed: 120, score: 401250, mods: STRONG });
+      PD.freshRun({ seed: 120, score: 401250 });
       wave = 25; spawner.queue = []; spawner.bossAlive = false; spawner.betweenT = 1.32;
       setPalette(SECTORS[4].pal, true);
+      // MAX HEAT: skærmen fuld af fjender (ikke af skud)
+      $s.field('drone', 12, 40, 560, 120);
+      $s.wall('splitter', 5, 300);
+      $s.add('tank', 250, 150); $s.add('tank', 550, 110);
     },
     script(c, ct) {
       PD.holdWave(26);
