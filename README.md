@@ -77,3 +77,4 @@ API-laget validerer al input server-side (navnelængde, score-range, wave-range)
 | `api/scores.js` | Vercel serverless function → Neon |
 | `package.json` | `@neondatabase/serverless` dependency |
 | `neon_schema.sql` | Postgres-tabel til Neon SQL Editor |
+| `promo/` | 9:16 promo-film (`neon-breach-promo.mp4`) + generatoren der optager det rigtige spil — se `promo/README.md` |
