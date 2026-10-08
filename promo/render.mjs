@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /* =====================================================
-   NEON BREACH — render promo-filmen (9:16, 1080×1920)
+   NEON BREACH — render promo-filmen (9:16 1080×1920 eller 1:1 1080×1080)
 
-   node promo/render.mjs                 → promo/neon-breach-promo.mp4 (60 fps)
+   node promo/render.mjs                 → promo/neon-breach-promo.mp4 (9:16, 60 fps)
+   node promo/render.mjs --format 1x1    → promo/neon-breach-promo-1x1.mp4 (1080×1080)
    node promo/render.mjs --fps 30        → hurtigere preview
    node promo/render.mjs --stills 3.2,16.5,40  → kun stillbilleder (PNG)
    node promo/render.mjs --from 16 --to 25     → delvist klip (uden lyd)
-   node promo/render.mjs --url NEONBREACH.DK   → vis spillets adresse på slutskiltet
+   node promo/render.mjs --url MIT.DOMÆNE.DK   → anden adresse på slutskiltet ('' = ingen)
 
    Kræver: Node 18+, Playwright (Chromium) og ffmpeg.
    ===================================================== */
@@ -28,12 +29,13 @@ const arg = (name, def) => {
   return v === undefined || v.startsWith('--') ? true : v;
 };
 const FPS = Number(arg('fps', 60));
-const OUT = path.resolve(arg('out', path.join(here, 'neon-breach-promo.mp4')));
+const FORMAT = String(arg('format', '9x16')) === '1x1' ? '1x1' : '9x16';
+const OUT = path.resolve(arg('out', path.join(here, FORMAT === '1x1' ? 'neon-breach-promo-1x1.mp4' : 'neon-breach-promo.mp4')));
 const WORK = path.resolve(arg('work', path.join(root, '.promo-work')));
 const STILLS = arg('stills', '') ? String(arg('stills')).split(',').map(Number) : null;
 const FROM = Number(arg('from', 0));
 const TO = arg('to', null);
-const URL_TEXT = arg('url', '');
+const URL_TEXT = arg('url', 'NEON-BREACH.LARSSOHL.DK');
 const KEEP_EVERY = Number(arg('keep', 0));   // gem hver N'te frame som PNG til gennemsyn
 const CRF = String(arg('crf', 23));          // endelig kvalitet (lavere = bedre/større) — 23 ≈ 39 MB
 
@@ -46,10 +48,10 @@ const { page, close } = await openStage({ root, scripts: [], log });
 await page.addScriptTag({ content: `window.PROMO_URL = ${JSON.stringify(URL_TEXT === true ? '' : URL_TEXT)};` });
 for (const s of scripts) await page.addScriptTag({ path: s });
 
-const { frames, length } = await page.evaluate((fps) => window.__director.init(fps), FPS);
+const { frames, length, width, height } = await page.evaluate(([fps, fmt]) => window.__director.init(fps, fmt), [FPS, FORMAT]);
 const i0 = Math.max(0, Math.round(FROM * FPS));
 const i1 = TO == null ? frames : Math.min(frames, Math.round(Number(TO) * FPS));
-log(`${FPS} fps · ${frames} frames (${length}s) · render ${i0}..${i1 - 1}`);
+log(`${FORMAT} ${width}×${height} · ${FPS} fps · ${frames} frames (${length}s) · render ${i0}..${i1 - 1}`);
 
 const t0 = Date.now();
 const eta = (i) => {

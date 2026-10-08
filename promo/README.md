@@ -1,6 +1,13 @@
-# NEON BREACH — promo-film (9:16)
+# NEON BREACH — promo-film (9:16 og 1:1)
 
-**`neon-breach-promo.mp4`** — 48 sek., 1080×1920, 60 fps, H.264 High + AAC 48 kHz (~39 MB). Klar til TikTok, Instagram Reels og YouTube Shorts.
+| Fil | Format | Til |
+|---|---|---|
+| **`neon-breach-promo.mp4`** | 9:16 · 1080×1920 | TikTok, Instagram Reels, YouTube Shorts, Stories |
+| **`neon-breach-promo-1x1.mp4`** | 1:1 · 1080×1080 | Instagram/Facebook-feed, LinkedIn, X |
+
+Begge: 48 sek., 60 fps, H.264 High + AAC 48 kHz. Slutskiltet viser spillets adresse **NEON-BREACH.LARSSOHL.DK**.
+
+I 1:1-versionen står spilskærmen i midten — som spillet ser ud i en desktop-browser — med animerede synthwave-sidepaneler (stjerner, neon-figurer, VU-metre på trommerne) og en neon-ramme. Titlerne er større og bryder ud over rammen.
 
 Filmen er optaget fra **det rigtige spil** (`index.html` + `game.js`, uændret), drevet frame-for-frame af en scriptet autopilot, med 80'er-grafik, overgange og et originalt 8-bit soundtrack lagt ovenpå.
 
@@ -31,9 +38,10 @@ Navne og scores på Hall of Fame-tavlen i filmen er fiktive demo-data.
 Kræver Node 18+, [Playwright](https://playwright.dev) (Chromium) og `ffmpeg`. Ingen nye dependencies i `package.json`.
 
 ```bash
-node promo/render.mjs                         # → promo/neon-breach-promo.mp4 (60 fps, ~10 min)
+node promo/render.mjs                         # → promo/neon-breach-promo.mp4 (9:16, 60 fps, ~10 min)
+node promo/render.mjs --format 1x1            # → promo/neon-breach-promo-1x1.mp4 (1080×1080)
 node promo/render.mjs --fps 30                # hurtigere preview
-node promo/render.mjs --url NEONBREACH.DK     # vis spillets adresse på slutskiltet
+node promo/render.mjs --url MIT.DOMÆNE.DK     # anden adresse på slutskiltet (--url '' = ingen)
 node promo/render.mjs --stills 3.2,16.5,40    # kun stillbilleder (PNG) til gennemsyn
 node promo/render.mjs --crf 18                # højere kvalitet / større fil
 ```

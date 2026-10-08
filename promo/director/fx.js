@@ -9,27 +9,38 @@
   const { W, H, U, COL } = PD;
 
   /* ---------- Delte arbejds-canvases ---------- */
-  const tmpA = U.canvas(), tmpB = U.canvas(), chR = U.canvas(), chC = U.canvas();
-  const bloomS = U.canvas(W / 4, H / 4), bloomS2 = U.canvas(W / 4, H / 4);
+  const tmpA = U.canvas(), tmpB = U.canvas();
   const pixS = U.canvas(W, H), vhsS = U.canvas(), vhsSrc = U.canvas();
   PD.tmpA = tmpA; PD.tmpB = tmpB;
 
-  // statiske overlays
-  const scan = U.canvas();
-  {
-    const g = scan.getContext('2d');
-    g.fillStyle = 'rgba(0,0,0,1)';
-    for (let y = 0; y < H; y += 6) g.fillRect(0, y + 4, W, 2);
-  }
-  const vig = U.canvas();
-  {
-    const g = vig.getContext('2d');
-    const gr = g.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.62);
-    gr.addColorStop(0, 'rgba(0,0,0,0)');
-    gr.addColorStop(1, 'rgba(0,0,0,0.62)');
-    g.fillStyle = gr;
-    g.fillRect(0, 0, W, H);
-  }
+  // Formatafhængige hjælpe-canvases (9:16 = 1080×1920, 1:1 = 1080×1080) — oprettes ved første brug
+  const bySize = new Map();
+  const kit = (w, h) => {
+    const key = w + 'x' + h;
+    let k = bySize.get(key);
+    if (k) return k;
+    const scan = U.canvas(w, h);
+    {
+      const g = scan.getContext('2d');
+      g.fillStyle = 'rgba(0,0,0,1)';
+      for (let y = 0; y < h; y += 6) g.fillRect(0, y + 4, w, 2);
+    }
+    const vig = U.canvas(w, h);
+    {
+      const g = vig.getContext('2d');
+      const m = Math.max(w, h);
+      const gr = g.createRadialGradient(w / 2, h / 2, m * 0.28, w / 2, h / 2, m * 0.62);
+      gr.addColorStop(0, 'rgba(0,0,0,0)');
+      gr.addColorStop(1, 'rgba(0,0,0,0.62)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, w, h);
+    }
+    k = { w, h, scan, vig, b1: U.canvas(w / 4, h / 4), b2: U.canvas(w / 4, h / 4), r: U.canvas(w, h), c: U.canvas(w, h) };
+    bySize.set(key, k);
+    return k;
+  };
+  PD.kit = kit;
+
   // TV-sne: et par støj-canvases i lav opløsning, skaleres op uden udglatning
   const noise = [0, 1, 2, 3].map((k) => {
     const c = U.canvas(W / 4, H / 4);
@@ -65,38 +76,40 @@
   /* ---------- Post-effekter ---------- */
   PD.bloom = (g, src, amt) => {
     if (amt <= 0) return;
-    const b = bloomS.getContext('2d');
+    const K = kit(g.canvas.width, g.canvas.height);
+    const b = K.b1.getContext('2d');
     b.globalCompositeOperation = 'copy';
-    b.drawImage(src, 0, 0, W / 4, H / 4);
-    const b2 = bloomS2.getContext('2d');
+    b.drawImage(src, 0, 0, K.w / 4, K.h / 4);
+    const b2 = K.b2.getContext('2d');
     b2.globalCompositeOperation = 'copy';
     b2.filter = 'contrast(1.7) brightness(0.75) blur(7px)';
-    b2.drawImage(bloomS, 0, 0);
+    b2.drawImage(K.b1, 0, 0);
     b2.filter = 'none';
     g.save();
     g.globalCompositeOperation = 'lighter';
     g.globalAlpha = amt;
-    g.drawImage(bloomS2, 0, 0, W, H);
+    g.drawImage(K.b2, 0, 0, K.w, K.h);
     g.restore();
   };
 
-  PD.scanlines = (g, a = 0.2) => { g.save(); g.globalAlpha = a; g.drawImage(scan, 0, 0); g.restore(); };
-  PD.vignette = (g, a = 1) => { g.save(); g.globalAlpha = a; g.drawImage(vig, 0, 0); g.restore(); };
+  PD.scanlines = (g, a = 0.2) => { g.save(); g.globalAlpha = a; g.drawImage(kit(g.canvas.width, g.canvas.height).scan, 0, 0); g.restore(); };
+  PD.vignette = (g, a = 1) => { g.save(); g.globalAlpha = a; g.drawImage(kit(g.canvas.width, g.canvas.height).vig, 0, 0); g.restore(); };
 
   // Rød/cyan kanal-split. src skal være en kopi af billedet (ikke g's eget canvas)
   PD.chroma = (g, src, amt, dy = 0) => {
-    const r = chR.getContext('2d');
+    const K = kit(g.canvas.width, g.canvas.height);
+    const r = K.r.getContext('2d');
     r.globalCompositeOperation = 'copy'; r.drawImage(src, 0, 0);
-    r.globalCompositeOperation = 'multiply'; r.fillStyle = '#ff0000'; r.fillRect(0, 0, W, H);
-    const c = chC.getContext('2d');
+    r.globalCompositeOperation = 'multiply'; r.fillStyle = '#ff0000'; r.fillRect(0, 0, K.w, K.h);
+    const c = K.c.getContext('2d');
     c.globalCompositeOperation = 'copy'; c.drawImage(src, 0, 0);
-    c.globalCompositeOperation = 'multiply'; c.fillStyle = '#00ffff'; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = 'multiply'; c.fillStyle = '#00ffff'; c.fillRect(0, 0, K.w, K.h);
     g.save();
     g.globalCompositeOperation = 'source-over';
-    g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#000'; g.fillRect(0, 0, K.w, K.h);
     g.globalCompositeOperation = 'lighter';
-    g.drawImage(chC, -amt, -dy);
-    g.drawImage(chR, amt, dy);
+    g.drawImage(K.c, -amt, -dy);
+    g.drawImage(K.r, amt, dy);
     g.restore();
   };
 
@@ -115,6 +128,7 @@
   };
 
   PD.glitchSlices = (g, srcA, srcB, mix, k, seed) => {
+    const W = srcA.width, H = srcA.height;
     const n = 4 + Math.floor(k * 20);
     for (let j = 0; j < n; j++) {
       const y = U.hash(seed, j, 1) * H;
@@ -179,6 +193,7 @@
 
   // CRT tænd/sluk. p: 0 → 1 (tænd: fra sort til billede, sluk: omvendt)
   PD.crt = (g, src, p, on) => {
+    const W = g.canvas.width, H = g.canvas.height;
     g.save();
     g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
     const q = on ? p : 1 - p;
@@ -354,8 +369,9 @@
   /* ---------- Neon-tekst ---------- */
   // o: size, font ('ps'|'vt'), color, glow, align, spacing, alpha, scale, rot,
   //    chroma (px), stroke, fill (CanvasGradient-fabrik), extrude {n, dx, dy, color}
+  PD.textBoost = 1;   // >1 i 1:1-formatet, mens tekst-overlays tegnes (titler bryder ud over spilskærmen)
   PD.text = (g, str, x, y, o = {}) => {
-    const size = o.size ?? 48;
+    const size = (o.size ?? 48) * PD.textBoost;
     const font = o.font === 'vt' ? PD.VT(size) : PD.FONT(size);
     const spacing = o.spacing ?? 0;
     g.save();
@@ -393,6 +409,7 @@
 
   PD.textWidth = (g, str, size, font = 'ps', spacing = 0) => {
     g.save();
+    size *= PD.textBoost;
     g.font = font === 'vt' ? PD.VT(size) : PD.FONT(size);
     g.letterSpacing = spacing + 'px';
     const w = g.measureText(str).width;
@@ -554,6 +571,94 @@
     g.shadowBlur = 0;
     g.fillStyle = '#fff';
     g.fillRect(-2, -8, 4, 8);
+    g.restore();
+  };
+
+  /* ---------- 1:1-formatet: sidepaneler + neon-ramme om spilskærmen ----------
+     Samme billedsprog som spillets eget desktop-backdrop (backdrop.js):
+     stjerner, synthwave-gulv og svævende neon-figurer — plus VU-metre på trommerne. */
+  const glyphs = Array.from({ length: 12 }, (_, i) => ({
+    side: i % 2 ? 1 : -1, x: U.hash(i, 1, 71), y: U.hash(i, 2, 71), s: 16 + U.hash(i, 3, 71) * 30,
+    kind: i % 3, col: [COL.pink, COL.cyan, COL.orange, COL.green, COL.yellow][i % 5],
+    vr: (U.hash(i, 4, 71) - 0.5) * 1.4, vy: 0.012 + U.hash(i, 5, 71) * 0.02, ph: U.hash(i, 6, 71) * 6,
+  }));
+  const sideStars = Array.from({ length: 90 }, (_, i) => ({ x: U.hash(i, 1, 72), y: U.hash(i, 2, 72), z: 0.2 + U.hash(i, 3, 72) * 0.8 }));
+  PD.sidePanels = (g, t, px, pw, kick, snare) => {
+    const w = g.canvas.width, h = g.canvas.height;
+    const bg = g.createRadialGradient(w / 2, h * 1.1, 0, w / 2, h * 1.1, h * 1.1);
+    bg.addColorStop(0, '#1a0533'); bg.addColorStop(0.65, COL.bg); bg.addColorStop(1, COL.bg);
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    for (const st of sideStars) {
+      const y = ((st.y + t * (0.008 + st.z * 0.03)) % 1) * h;
+      g.globalAlpha = 0.18 + st.z * 0.5;
+      g.fillStyle = st.z > 0.72 ? '#ffffff' : COL.dim;
+      g.fillRect(st.x * w, y, Math.max(1.5, st.z * 3), Math.max(1.5, st.z * 3));
+    }
+    g.globalAlpha = 1;
+    // synthwave-gulv
+    const horizon = h * 0.6;
+    g.save();
+    g.lineWidth = 1.5;
+    g.strokeStyle = 'rgba(255,43,214,0.55)';
+    const sc = (t * 0.8) % 1;
+    for (let i = 0; i < 20; i++) {
+      const k = (i + sc) / 20, y = horizon + (h - horizon) * k * k;
+      g.globalAlpha = 0.5 * (1 - k) + 0.05 + 0.15 * kick;
+      g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke();
+    }
+    g.globalAlpha = 0.3;
+    g.strokeStyle = 'rgba(0,246,255,0.5)';
+    for (let i = -16; i <= 16; i++) { g.beginPath(); g.moveTo(w / 2 + i * 26, horizon); g.lineTo(w / 2 + i * 230, h); g.stroke(); }
+    g.restore();
+    // svævende neon-figurer i sidefelterne
+    const sideW = px;
+    for (const gl of glyphs) {
+      const gx = gl.side < 0 ? gl.x * (sideW - 60) + 30 : px + pw + 30 + gl.x * (sideW - 60);
+      const gy = ((gl.y + t * gl.vy) % 1.2 - 0.1) * h;
+      g.save();
+      g.translate(gx, gy);
+      g.rotate(gl.ph + t * gl.vr);
+      g.globalAlpha = 0.2 + 0.25 * Math.abs(Math.sin(t * 1.8 + gl.ph)) + 0.25 * kick;
+      g.shadowColor = gl.col; g.shadowBlur = 18;
+      g.strokeStyle = gl.col; g.lineWidth = 2.5;
+      const z = gl.s;
+      g.beginPath();
+      if (gl.kind === 0) { g.moveTo(0, -z); g.lineTo(z * 0.85, z * 0.72); g.lineTo(-z * 0.85, z * 0.72); }
+      else if (gl.kind === 1) { g.moveTo(0, -z); g.lineTo(z * 0.7, z * 0.6); g.lineTo(0, z * 0.28); g.lineTo(-z * 0.7, z * 0.6); }
+      else { g.moveTo(0, -z); g.lineTo(z * 0.8, 0); g.lineTo(0, z); g.lineTo(-z * 0.8, 0); }
+      g.closePath(); g.stroke();
+      g.restore();
+    }
+    // VU-metre: 5 søjler pr. side, hopper på kick/snare
+    for (const side of [-1, 1]) {
+      for (let b = 0; b < 5; b++) {
+        const bw = 22, gap = 12;
+        const x0 = side < 0 ? px - 34 - (b + 1) * (bw + gap) + gap : px + pw + 34 + b * (bw + gap);
+        const lvl = Math.min(1, 0.15 + 0.85 * (b % 2 ? snare : kick) * (0.55 + 0.45 * U.hash(b, side + 2, Math.floor(t * 10))));
+        const cells = 12, ch = 14;
+        for (let c = 0; c < cells; c++) {
+          if (c / cells > lvl) break;
+          g.fillStyle = c > 9 ? COL.pink : c > 6 ? COL.orange : COL.cyan;
+          g.globalAlpha = 0.85;
+          g.fillRect(x0, h - 40 - (c + 1) * (ch + 4), bw, ch);
+        }
+      }
+    }
+    g.globalAlpha = 1;
+  };
+
+  // Neon-ramme om spilskærmen (som spillets canvas-glød på desktop)
+  PD.bezel = (g, px, pw, kick) => {
+    const h = g.canvas.height;
+    g.save();
+    g.shadowColor = 'rgba(123,0,255,0.9)'; g.shadowBlur = 50 + 30 * kick;
+    g.strokeStyle = 'rgba(123,0,255,0.5)'; g.lineWidth = 6;
+    g.strokeRect(px - 3, -10, pw + 6, h + 20);
+    g.shadowColor = COL.cyan; g.shadowBlur = 22;
+    g.strokeStyle = `rgba(0,246,255,${0.55 + 0.4 * kick})`; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(px - 2, 0); g.lineTo(px - 2, h); g.moveTo(px + pw + 2, 0); g.lineTo(px + pw + 2, h); g.stroke();
+    g.shadowColor = COL.pink; g.strokeStyle = 'rgba(255,43,214,0.7)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(px - 12, 0); g.lineTo(px - 12, h); g.moveTo(px + pw + 12, 0); g.lineTo(px + pw + 12, h); g.stroke();
     g.restore();
   };
 

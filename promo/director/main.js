@@ -11,8 +11,20 @@
   const SC = window.PROMO_SCORE;
 
   const film = U.canvas(), fg = film.getContext('2d');
-  const copy = U.canvas(), cg = copy.getContext('2d');
   PD.film = film;
+  // 1:1-formatet: 9:16-billedet bliver "spilskærmen" i midten af et 1080×1080-billede
+  let SQUARE = false;
+  const sq = U.canvas(1080, 1080), sqg = sq.getContext('2d');
+  const KQ = 1080 / H, PW = W * KQ, PX = (1080 - PW) / 2;
+  const copies = new Map();
+  const copyOf = (c) => {
+    let k = copies.get(c);
+    if (!k) { k = U.canvas(c.width, c.height); copies.set(c, k); }
+    const g = k.getContext('2d');
+    g.globalCompositeOperation = 'copy';
+    g.drawImage(c, 0, 0);
+    return k;
+  };
 
   const hits = SC.hits();
   const list = (k) => hits.filter((h) => h.kind === k).map((h) => h.t);
@@ -24,7 +36,6 @@
     return idx < 0 ? 0 : Math.exp(-(t - arr[idx]) / tau);
   };
 
-  const snapCopy = () => { cg.globalCompositeOperation = 'copy'; cg.drawImage(film, 0, 0); };
 
   function drawSeg(g, s, t, i) {
     const cam = (s.cam && s.cam(t)) || {};
@@ -84,30 +95,48 @@
       if (t >= s.clip.simStart && t < s.until && s.clip.lastI !== i) s.clip.advanceTo(t, i, dt);
     }
 
-    for (const o of PD.overlays) {
-      if (t >= o.t0 && t < o.t1) { fg.save(); o.fn(fg, t, i); fg.restore(); }
+    let out = film, og = fg;
+    if (SQUARE) {
+      out = sq; og = sqg;
+      const kick = env(KICK, t, 0.12), snare = env(SNARE, t, 0.1);
+      PD.sidePanels(sqg, t, PX, PW, kick, snare);
+      sqg.drawImage(film, PX, 0, PW, 1080);
+      PD.bezel(sqg, PX, PW, kick);
+      // tekst-overlays: 9:16-koordinater lægges ind over skærmen, men titlerne
+      // tegnes større og må bryde ud over rammen
+      og.save();
+      og.setTransform(KQ, 0, 0, KQ, PX, 0);
+      PD.textBoost = 1.45;
     }
+    for (const o of PD.overlays) {
+      if (t >= o.t0 && t < o.t1) { og.save(); o.fn(og, t, i); og.restore(); }
+    }
+    if (SQUARE) { PD.textBoost = 1; og.restore(); }
 
     // ---- post ----
-    PD.bloom(fg, film, 0.42);
+    const ow = out.width, oh = out.height;
+    PD.bloom(og, out, 0.42);
     const chroma = info.chroma + 4 * env(SNARE, t, 0.06) + 9 * env(CRASH, t, 0.11);
-    if (chroma >= 0.8) { snapCopy(); PD.chroma(fg, copy, chroma); }
-    PD.scanlines(fg, 0.16);
-    PD.vignette(fg, 0.9);
+    if (chroma >= 0.8) PD.chroma(og, copyOf(out), chroma * (SQUARE ? 0.75 : 1));
+    PD.scanlines(og, 0.16);
+    PD.vignette(og, 0.9);
     const on1 = 0.42, off0 = SC.LENGTH - 0.7, off1 = SC.LENGTH - 0.12;
-    if (t < on1) { snapCopy(); PD.crt(fg, copy, U.inv(0, on1, t), true); }
+    if (t < on1) PD.crt(og, copyOf(out), U.inv(0, on1, t), true);
     if (t >= off0) {
-      if (t < off1) { snapCopy(); PD.crt(fg, copy, U.inv(off0, off1, t), false); }
-      else { fg.fillStyle = '#000'; fg.fillRect(0, 0, W, H); }
+      if (t < off1) PD.crt(og, copyOf(out), U.inv(off0, off1, t), false);
+      else { og.fillStyle = '#000'; og.fillRect(0, 0, ow, oh); }
     }
-    return film;
+    return out;
   };
 
   let FPS = 60, lastSim = -1;
   window.__director = {
-    init(fps) {
+    init(fps, format = '9x16') {
       FPS = fps;
-      return { frames: Math.round(SC.LENGTH * fps), length: SC.LENGTH };
+      SQUARE = format === '1x1';
+      // maks. tekstbredde i 9:16-enheder (i 1:1 må titlerne bruge hele den kvadratiske bredde)
+      PD.overlayMaxW = SQUARE ? (1080 - 90) / KQ : W - 110;
+      return { frames: Math.round(SC.LENGTH * fps), length: SC.LENGTH, width: SQUARE ? 1080 : W, height: SQUARE ? 1080 : H };
     },
     // simulér alle frames før i (uden komposition), så et delvist render starter korrekt
     seek(i) {
@@ -116,9 +145,9 @@
       PD.events.length = 0;
     },
     render(i, type = 'png') {
-      PD.renderFrame(i, FPS);
+      const out = PD.renderFrame(i, FPS);
       lastSim = i;
-      return film.toDataURL(type === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
+      return out.toDataURL(type === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
     },
     simulate(i) { PD.simulate(i, FPS); lastSim = i; },
     events() { return { events: PD.events, cues: PD.cues, fps: FPS }; },

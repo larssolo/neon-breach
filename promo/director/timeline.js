@@ -18,7 +18,26 @@
   const { W, H, KX, KY, U, COL, T, stage: $s } = PD;
   const SC = window.PROMO_SCORE;
   const C = SC.CUES;
-  const PLAY_URL = window.PROMO_URL || '';   // fx 'NEONBREACH.DK' — vises på slutskiltet hvis sat
+  const PLAY_URL = window.PROMO_URL ?? 'NEON-BREACH.LARSSOHL.DK';   // spillets adresse på slutskiltet
+
+  // Tegn i hele billedets bredde (også ud over spilskærmen i 1:1-formatet).
+  // fn(w, h, mapY, k): w/h = output-canvas, mapY = 9:16-y → output-y, k = skala
+  const full = (g, fn) => {
+    const m = g.getTransform();
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    fn(g.canvas.width, g.canvas.height, (y) => m.d * y + m.f, m.d);
+    g.restore();
+  };
+  const band = (g, y, ph, alpha, peak = 0.85) => full(g, (w, h, mapY, k) => {
+    const yy = mapY(y), hh = ph * k;
+    const gr = g.createLinearGradient(0, yy - hh / 2, 0, yy + hh / 2);
+    gr.addColorStop(0, 'rgba(6,1,15,0)'); gr.addColorStop(0.3, `rgba(6,1,15,${peak})`);
+    gr.addColorStop(0.7, `rgba(6,1,15,${peak})`); gr.addColorStop(1, 'rgba(6,1,15,0)');
+    g.globalAlpha = alpha;
+    g.fillStyle = gr;
+    g.fillRect(0, yy - hh / 2, w, hh);
+  });
 
   // Hold motoren på den valgte wave (ingen automatisk boss midt i en sektor-montage)
   PD.holdWave = (n) => { if (wave >= n && spawner.betweenT > 0) spawner.betweenT = 99; };
@@ -753,11 +772,11 @@
       const ba = U.easeOut(U.inv(T(28) - 0.05, T(28) + 0.2, t));
       if (ba > 0) {
         const pressed = t >= COIN_IN;
-        const bw = 760, bh = 136, bx = W / 2 - bw / 2, by = 1360 - bh / 2;
+        const bw = 760, bh = 136, bx = W / 2 - bw / 2, by = 1432 - bh / 2;
         const pulse = Math.floor(t * 2 / SC.BEAT) % 2 === 0;
         g.save();
         g.globalAlpha = ba;
-        g.translate(W / 2, 1360); g.scale(0.6 + 0.4 * U.back(ba), 0.6 + 0.4 * U.back(ba)); g.translate(-W / 2, -1360);
+        g.translate(W / 2, 1432); g.scale(0.6 + 0.4 * U.back(ba), 0.6 + 0.4 * U.back(ba)); g.translate(-W / 2, -1432);
         const col = pressed ? COL.cyan : COL.orange;
         const bg = g.createLinearGradient(0, by, 0, by + bh);
         bg.addColorStop(0, '#1a0533'); bg.addColorStop(1, '#06010f');
@@ -767,15 +786,15 @@
         g.strokeRect(bx, by, bw, bh);
         g.shadowBlur = 0;
         if (!pressed) {
-          PD.drawCoin(g, bx + 105, 1360, 40, t);
-          PD.text(g, 'INSERT COIN', W / 2 + 60, 1362, { size: 50, color: COL.orange, glow: 22, spacing: 8 });
+          PD.drawCoin(g, bx + 105, 1432, 40, t);
+          PD.text(g, 'INSERT COIN', W / 2 + 60, 1434, { size: 50, color: COL.orange, glow: 22, spacing: 8 });
         } else {
           const fl = 1 - U.inv(COIN_IN, COIN_IN + 0.25, t);
           if (fl > 0) { g.fillStyle = `rgba(255,255,255,${fl})`; g.fillRect(bx, by, bw, bh); }
           if (Math.floor((t - COIN_IN) * 5) % 2 === 0 || t - COIN_IN < 0.5) {
-            PD.text(g, 'PLAY NOW', W / 2 + 40, 1362, { size: 54, color: COL.cyan, glow: 26, spacing: 8 });
+            PD.text(g, 'PLAY NOW', W / 2 + 40, 1434, { size: 54, color: COL.cyan, glow: 26, spacing: 8 });
             g.save(); g.fillStyle = COL.cyan; g.shadowColor = COL.cyan; g.shadowBlur = 20;
-            g.beginPath(); g.moveTo(W / 2 - 250, 1334); g.lineTo(W / 2 - 200, 1362); g.lineTo(W / 2 - 250, 1390); g.closePath(); g.fill();
+            g.beginPath(); g.moveTo(W / 2 - 250, 1406); g.lineTo(W / 2 - 200, 1434); g.lineTo(W / 2 - 250, 1462); g.closePath(); g.fill();
             g.restore();
           }
         }
@@ -783,7 +802,7 @@
       }
       // mønten der falder i slottet
       const ca = U.inv(COIN_IN - 0.28, COIN_IN, t);
-      if (ca > 0 && ca < 1) PD.drawCoin(g, W / 2 + 280 - ca * 180, U.lerp(-80, 1360, U.easeIn(ca)), 46, t * 2);
+      if (ca > 0 && ca < 1) PD.drawCoin(g, W / 2 + 280 - ca * 180, U.lerp(-80, 1432, U.easeIn(ca)), 46, t * 2);
     }
   }
   const outro = new OutroClip({ id: 'outro', start: OUT0, end: SC.LENGTH + 0.5 });
@@ -858,11 +877,14 @@
   const fitSize = (g, text, o) => {
     const size = o.size ?? 72;
     const w = PD.textWidth(g, text, size, o.font, o.spacing ?? 0);
-    return w > W - 110 ? size * (W - 110) / w : size;
+    const max = PD.overlayMaxW ?? W - 110;
+    return w > max ? size * max / w : size;
   };
   const slam = (text, t0, t1, o = {}) => {
     let fitted = null;
     ov(t0, t1, (g, t) => {
+      const ob = PD.textBoost;
+      if (o.maxBoost) PD.textBoost = Math.min(ob, o.maxBoost);   // tætte tekstblokke må ikke vokse sammen i 1:1
       if (fitted == null) fitted = fitSize(g, text, o);
       const lt = t - t0, rt = t1 - t;
       const inK = U.clamp01(lt / (o.inDur ?? 0.16));
@@ -871,17 +893,9 @@
       const a = Math.min(1, lt / 0.05) * (1 - outK);
       let x = o.x ?? W / 2;
       if (outK > 0) x += (U.hash(Math.floor(t * 60), 5) - 0.5) * 120 * outK;
-      if (o.plate) {
-        g.save();
-        g.globalAlpha = a * 0.75;
-        const ph = (o.size ?? 72) * 2.1;
-        const gr = g.createLinearGradient(0, (o.y ?? H / 2) - ph / 2, 0, (o.y ?? H / 2) + ph / 2);
-        gr.addColorStop(0, 'rgba(6,1,15,0)'); gr.addColorStop(0.3, 'rgba(6,1,15,0.85)'); gr.addColorStop(0.7, 'rgba(6,1,15,0.85)'); gr.addColorStop(1, 'rgba(6,1,15,0)');
-        g.fillStyle = gr;
-        g.fillRect(0, (o.y ?? H / 2) - ph / 2, W, ph);
-        g.restore();
-      }
+      if (o.plate) band(g, o.y ?? H / 2, (o.size ?? 72) * 2.1 * PD.textBoost, a * 0.75);
       PD.text(g, text, x, o.y ?? H / 2, Object.assign({}, o, { size: fitted, scale: sc, alpha: a, chroma: (1 - inK) * 28 + outK * 30 + (o.chroma ?? 0) }));
+      PD.textBoost = ob;
     });
     if (o.sfx !== 'none') cue(t0, o.sfx ?? 'slam');
   };
@@ -899,7 +913,8 @@
       if (n < text.length || Math.floor(t * 3.3) % 2 === 0) {
         const cw = PD.textWidth(g, text.slice(0, n), size, o.font, sp);
         g.save(); g.globalAlpha = a; g.fillStyle = o.color ?? '#fff'; g.shadowColor = o.color ?? '#fff'; g.shadowBlur = 12;
-        g.fillRect(x + cw + 6, o.y - size / 2, size * 0.7, size);
+        const cs = size * PD.textBoost;
+        g.fillRect(x + cw + 6, o.y - cs / 2, cs * 0.7, cs);
         g.restore();
       }
     });
@@ -913,12 +928,7 @@
       const inK = U.easeOut(U.clamp01(lt / 0.2)), outK = U.easeIn(U.clamp01(1 - rt / 0.18));
       const y = 640;
       const size = Math.min(72, Math.floor(980 / (name.length * 1.08)));
-      g.save();
-      g.globalAlpha = 0.78 * (1 - outK) * inK;
-      const gr = g.createLinearGradient(0, y - 150, 0, y + 110);
-      gr.addColorStop(0, 'rgba(6,1,15,0)'); gr.addColorStop(0.25, 'rgba(6,1,15,0.82)'); gr.addColorStop(0.8, 'rgba(6,1,15,0.82)'); gr.addColorStop(1, 'rgba(6,1,15,0)');
-      g.fillStyle = gr; g.fillRect(0, y - 150, W, 260);
-      g.restore();
+      band(g, y - 20, 260 * PD.textBoost, 0.78 * (1 - outK) * inK, 0.82);
       const a = 1 - outK;
       PD.text(g, `SECTOR ${num}/5`, W / 2 - (1 - inK) * W + outK * W * 0.6, y - 78, { font: 'vt', size: 58, color: COL.orange, glow: 12, spacing: 16, alpha: a });
       PD.text(g, name, W / 2 + (1 - inK) * W - outK * W * 0.6, y + 10, { size, color: col, glow: 26, spacing: 4, alpha: a, chroma: (1 - inK) * 20 });
@@ -985,8 +995,10 @@
   // skibet rammes: rødt flash + glitch præcis på musikkens cut
   ov(C.DEATH, C.DEATH + 0.32, (g, t, i) => {
     const k = 1 - U.inv(C.DEATH, C.DEATH + 0.32, t);
-    PD.glitchSlices(g, g.canvas, g.canvas, 0, k, i * 3 + 1);
-    g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = `rgba(255,30,80,${0.55 * k * k})`; g.fillRect(0, 0, W, H); g.restore();
+    full(g, (w, h) => {
+      PD.glitchSlices(g, g.canvas, g.canvas, 0, k, i * 3 + 1);
+      g.globalCompositeOperation = 'lighter'; g.fillStyle = `rgba(255,30,80,${0.55 * k * k})`; g.fillRect(0, 0, w, h);
+    });
   });
   slam('GAME OVER', T(12, 2.5), C.COIN + 0.18, { y: 760, size: 92, color: COL.pink, glow: 40, spacing: 8, from: 1.6, sfx: 'none' });
   slam('CONTINUE?', T(12, 3.1), C.COIN + 0.18, { y: 900, size: 46, color: '#ffffff', glow: 14, spacing: 6, from: 1.2, sfx: 'none' });
@@ -1000,7 +1012,7 @@
     PD.text(g, 'CREDIT 01', W - 60, 230, { font: 'vt', size: 60, color: '#fff', glow: 10, align: 'right', spacing: 6 });
   });
   cue(C.COIN, 'coin');
-  ov(C.COIN + 0.15, C.COIN + 0.3, (g, t) => { g.save(); g.fillStyle = '#fff'; g.globalAlpha = 1 - U.inv(C.COIN + 0.15, C.COIN + 0.3, t); g.fillRect(0, 0, W, H); g.restore(); });
+  ov(C.COIN + 0.15, C.COIN + 0.3, (g, t) => full(g, (w, h) => { g.fillStyle = '#fff'; g.globalAlpha = 1 - U.inv(C.COIN + 0.15, C.COIN + 0.3, t); g.fillRect(0, 0, w, h); }));
   osd('REWIND', rampage.rew.from, rampage.rew.to, { icon: 'rew', blink: true, y: 360 });
   ov(rampage.rew.from, rampage.rew.to, (g, t) => {
     const k = U.inv(rampage.rew.from, rampage.rew.to, t);
@@ -1023,17 +1035,19 @@
   /* ---- WARNING ---- */
   ov(WN - 0.05, T(17) + 0.05, (g, t) => {
     // gul/sort hazard-tape top og bund
-    const off = (t * 260) % 80;
-    for (const y0 of [150, H - 210]) {
-      g.save();
-      g.beginPath(); g.rect(0, y0, W, 56); g.clip();
-      g.fillStyle = '#ffb000'; g.fillRect(0, y0, W, 56);
-      g.fillStyle = '#0b0218';
-      for (let x = -120 + (y0 > 500 ? -off : off); x < W + 120; x += 80) {
-        g.beginPath(); g.moveTo(x, y0); g.lineTo(x + 40, y0); g.lineTo(x + 10, y0 + 56); g.lineTo(x - 30, y0 + 56); g.closePath(); g.fill();
+    full(g, (w, h, mapY, k) => {
+      const th = Math.round(56 * Math.max(k, 0.75)), off = (t * 260) % 80;
+      for (const [y0, dir] of [[mapY(150), 1], [mapY(H - 210), -1]]) {
+        g.save();
+        g.beginPath(); g.rect(0, y0, w, th); g.clip();
+        g.fillStyle = '#ffb000'; g.fillRect(0, y0, w, th);
+        g.fillStyle = '#0b0218';
+        for (let x = -120 + dir * off; x < w + 120; x += 80) {
+          g.beginPath(); g.moveTo(x, y0); g.lineTo(x + 40, y0); g.lineTo(x + 10, y0 + th); g.lineTo(x - 30, y0 + th); g.closePath(); g.fill();
+        }
+        g.restore();
       }
-      g.restore();
-    }
+    });
     if (Math.floor((t - WN) / (SC.BEAT / 2)) % 2 === 0) {
       PD.text(g, 'WARNING', W / 2, 300, { size: 104, color: '#ff3355', glow: 40, spacing: 12, stroke: { w: 10, color: '#0b0218' } });
     }
@@ -1059,13 +1073,42 @@
 
   /* ---- SLUTSKILT ---- */
   cue(OUT0 + 0.06, 'logo');
-  slam('PLAY FREE', T(27), SC.LENGTH, { y: 1060, size: 92, color: COL.cyan, glow: 32, spacing: 8, stroke: { w: 10, color: '#0b0218' } });
-  slam('IN YOUR BROWSER', T(27, 1), SC.LENGTH, { y: 1158, font: 'vt', size: 70, color: '#ffffff', glow: 12, glowColor: COL.cyan, spacing: 8, from: 1.4, sfx: 'none', stroke: { w: 8, color: '#0b0218' } });
-  slam('MOBILE · DESKTOP · NO DOWNLOAD', T(27, 2), SC.LENGTH, { y: 1230, font: 'vt', size: 48, color: COL.dim, glow: false, spacing: 6, from: 1.2, sfx: 'none', stroke: { w: 6, color: '#0b0218' } });
+  slam('PLAY FREE', T(27), SC.LENGTH, { y: 1035, maxBoost: 1.15, size: 92, color: COL.cyan, glow: 32, spacing: 8, stroke: { w: 10, color: '#0b0218' } });
+  slam('IN YOUR BROWSER', T(27, 1), SC.LENGTH, { y: 1128, maxBoost: 1.15, font: 'vt', size: 70, color: '#ffffff', glow: 12, glowColor: COL.cyan, spacing: 8, from: 1.4, sfx: 'none', stroke: { w: 8, color: '#0b0218' } });
+  slam('MOBILE · DESKTOP · NO DOWNLOAD', T(27, 3), SC.LENGTH, { y: 1302, maxBoost: 1.15, font: 'vt', size: 48, color: COL.dim, glow: false, spacing: 6, from: 1.2, sfx: 'none', stroke: { w: 6, color: '#0b0218' } });
   cue(T(28), 'card');
   cue(COIN_IN, 'coin');
-  slam('CAN YOU REACH #1?', T(28, 2), SC.LENGTH, { y: 1520, size: 50, color: COL.pink, glow: 26, spacing: 4, stroke: { w: 8, color: '#0b0218' } });
-  if (PLAY_URL) slam(PLAY_URL, T(29) + 0.3, SC.LENGTH, { y: 1610, font: 'vt', size: 58, color: '#ffffff', glow: 12, spacing: 6, from: 1.2, sfx: 'none' });
+  slam('CAN YOU REACH #1?', T(28, 2), SC.LENGTH, { y: 1565, maxBoost: 1.15, size: 50, color: COL.pink, glow: 26, spacing: 4, stroke: { w: 8, color: '#0b0218' } });
+  // spillets adresse: skrives frem i en neon-ramme og bliver stående til slut
+  if (PLAY_URL) {
+    const U0 = T(27, 2), uy = 1215;
+    ov(U0, SC.LENGTH, (g, t) => {
+      const ob = PD.textBoost;
+      PD.textBoost = Math.min(ob, 1.15);
+      const lt = t - U0;
+      const n = Math.min(PLAY_URL.length, Math.floor(lt * 40) + 1);
+      let size = 38;
+      const full_w = PD.textWidth(g, PLAY_URL, size, 'ps', 2);
+      const maxw = (PD.overlayMaxW ?? W - 110) - 60;
+      if (full_w > maxw) size *= maxw / full_w;
+      const tw = PD.textWidth(g, PLAY_URL, size, 'ps', 2);
+      const bw = tw + 60 * PD.textBoost, bh = size * PD.textBoost * 2.1;
+      const open = U.easeOut(U.clamp01(lt / 0.15));
+      const pulse = 0.5 + 0.5 * Math.sin(lt * 7);
+      g.save();
+      g.globalAlpha = open;
+      g.fillStyle = 'rgba(6,1,15,0.82)';
+      g.fillRect(W / 2 - (bw / 2) * open, uy - bh / 2, bw * open, bh);
+      g.shadowColor = COL.cyan; g.shadowBlur = 18 + 16 * pulse;
+      g.strokeStyle = COL.cyan; g.lineWidth = 4;
+      g.strokeRect(W / 2 - (bw / 2) * open, uy - bh / 2, bw * open, bh);
+      g.restore();
+      const x = W / 2 - tw / 2;
+      PD.text(g, PLAY_URL.slice(0, n), x, uy + 2, { size, align: 'left', color: '#ffffff', glow: 16, glowColor: COL.cyan, spacing: 2, double: false });
+      PD.textBoost = ob;
+    });
+    for (let k = 0; k < PLAY_URL.length; k += 2) cue(U0 + k / 40, 'type');
+  }
   cue(0, 'crtOn');
   cue(SC.LENGTH - 0.7, 'crtOff');
 
